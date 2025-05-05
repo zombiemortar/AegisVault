@@ -23,7 +23,7 @@ manage credentials securely.
 ## **Installation**
 ### **1. Clone the repository**
 ```bash
-git clone https://github.com/yourusername/AegisVault.git
+git clone https://github.com/zombiemortar/AegisVault.git
 cd AegisVault
 ```
 
@@ -87,7 +87,7 @@ Future updates will allow users to customize:
  
 
 ## **Contributors**
-Created by **[Your Name]**. Contributions welcome!  
+Created by **Joseph Sparks**. Contributions welcome!  
 
 ## **Legend: Priority System**
 🔴 **High Priority** – Critical feature, must be completed ASAP  
