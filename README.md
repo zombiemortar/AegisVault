@@ -87,7 +87,7 @@ Future updates will allow users to customize:
  
 
 ## **Contributors**
-Created by **Joseph Sparks**. Contributions welcome!  
+Created by **Joseph Sparks**. Contributions welcome after v1.0!  
 
 ## **Legend: Priority System**
 🔴 **High Priority** – Critical feature, must be completed ASAP  
