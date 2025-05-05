@@ -1,0 +1,8 @@
+{
+    "users": {
+        "2a209cfe52a245fac36d1c46d431cc2044cc659dafc9c63f8b6884192cd269b0": {
+            "username_salt": "543d16a7308035d73019c84823665725",
+            "password_salt": "63c0e3db243893be21692a2fcabf9d96"
+        }
+    }
+}
