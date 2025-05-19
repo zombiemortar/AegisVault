@@ -23,6 +23,18 @@
         "7ef9675ba05e75dc161c6c0fb44d7a7a6a963e462508538c9781b7760db5b937": {
             "username_salt": "1c66c7a9dc62b99abb245be639272a44",
             "password_salt": "6f0639e0b0c6796b6e59c4d204abf7fd"
+        },
+        "ba827ca4e50c5733b4a6df8385daf2d41edc9fe18c0441f1e47e45c71810db52": {
+            "username_salt": "b98ed2f679da77b769c5f10047eb78e3",
+            "password_salt": "785dea669ae9ac1233c5d15ece0670e1"
+        },
+        "63bd1f5ba57004f30f365f91dac915203807cc21ac7ad266aed76972169ca5a6": {
+            "username_salt": "d1e8fcf6ad441d3c83c79b7cee831f12",
+            "password_salt": "425d508b9320e02a94d4e699181f90ec"
+        },
+        "30f613b140d2f0b444303b6695991d04f1d8cff3d566cdd8541ae0e07ee3cb4c": {
+            "username_salt": "4afce702868cf4129c54dbc931d02ff0",
+            "password_salt": "af26a01ba72291b5870603cac7fd97be"
         }
     }
 }
