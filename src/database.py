@@ -1,7 +1,9 @@
 import sqlite3
+import os
 from encryption import encrypt_data, decrypt_data
 
-DATABASE_FILE = "passwords.db"
+DB_PATH = os.path.join("data", "passwords.db")  # ✅ Updated location
+DATABASE_FILE = "../data/passwords.db"
 
 def init_db():
     """Initializes the password storage database."""
@@ -23,6 +25,10 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+
+def get_connection():
+    """Establishes connection to the database."""
+    return sqlite3.connect(DB_PATH)
 
 def store_master_account(username, password):
     """Stores encrypted master account credentials."""
@@ -111,3 +117,14 @@ def update_password(website, new_password):
         print("❌ No matching credentials found for update.")
 
     conn.close()
+
+def get_all_stored_urls():
+    """Retrieves all stored website URLs."""
+    conn = sqlite3.connect("../data/passwords.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT DISTINCT website FROM credentials")
+    urls = [row[0] for row in cursor.fetchall()]
+
+    conn.close()
+    return urls  # ✅ Returns a list of stored URLs

@@ -2,7 +2,7 @@ import os
 import threading
 from database import (
     store_password, retrieve_password, store_master_account, load_master_account,
-    delete_password, update_password, init_db
+    delete_password, update_password, init_db, get_all_stored_urls
 )
 from encryption import generate_key, encrypt_data, decrypt_data
 from session import SessionManager
@@ -13,6 +13,8 @@ generate_key()
 session_active = False  # Tracks whether session is active
 session_expired_event = threading.Event()  # Tracks session expiration
 session = SessionManager()
+stored_urls = get_all_stored_urls()
+print("🔗 Stored Website URLs:", stored_urls)
 
 
 def startup_menu():
