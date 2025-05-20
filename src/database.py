@@ -30,15 +30,32 @@ def get_connection():
     """Establishes connection to the database."""
     return sqlite3.connect(DB_PATH)
 
-def store_master_account(username, password):
-    """Stores encrypted master account credentials."""
-    conn = sqlite3.connect(DATABASE_FILE)
+def store_master_account(username, encrypted_password):
+    """Updates the master account password for the given username."""
+    conn = sqlite3.connect("../data/passwords.db")
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM master_account")
-    cursor.execute("INSERT INTO master_account (username, password) VALUES (?, ?)",
-                   (encrypt_data(username), encrypt_data(password)))
-    conn.commit()
-    conn.close()
+
+    try:
+        # Debug: Check if the username exists
+        cursor.execute("SELECT username FROM master_account WHERE username = ?", (username,))
+        if cursor.fetchone():
+            # Update the password
+            cursor.execute(
+                "UPDATE master_account SET password = ? WHERE username = ?",
+                (encrypted_password, username)
+            )
+            print(f"DEBUG: Password updated for username: {username}")
+        else:
+            print(f"ERROR: Username {username} not found in the database.")
+            raise ValueError("Username not found.")
+
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        raise
+    finally:
+        conn.close()
+
 
 def load_master_account():
     """Retrieves and decrypts master account credentials."""
@@ -128,3 +145,14 @@ def get_all_stored_urls():
 
     conn.close()
     return urls  # ✅ Returns a list of stored URLs
+
+def get_total_stored_passwords():
+    """Retrieves the total number of stored passwords in the database."""
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM credentials")  # ✅ Ensure correct table name
+    total = cursor.fetchone()[0]  # ✅ Extract count value
+
+    conn.close()
+    return total

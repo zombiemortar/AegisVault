@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>AegisVault Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <img src="{{ url_for('static', filename='aegisvault.jpg') }}" alt="AegisVault Logo" class="logo-blur">
+
+        <h2>Login to AegisVault</h2>
+        <form action="/" method="POST">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit" class="btn-primary">Login</button>
+        </form>
+        <a href="/create_account" class="create-account-button">Create Account</a>
+    </div>
+</body>
+
+</html>

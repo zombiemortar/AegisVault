@@ -1,7 +1,7 @@
 import threading
 import time
 
-SESSION_TIMEOUT = 30  # 30-second timeout
+SESSION_TIMEOUT = 300  # 30-second timeout
 session_expire_event = threading.Event()
 
 class SessionManager:
@@ -38,6 +38,7 @@ class SessionManager:
         self.active = False
         self.username = None
         session_expire_event.set()  # ✅ Signal expiration only once
+        print(f"DEBUG: session_expire_event.is_set() → {session_expire_event.is_set()}")  # 🛠 Confirms event signal
 
     def monitor_session(self):
         """Monitors session timeout and expires if idle for too long."""
