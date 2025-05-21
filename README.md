@@ -1,3 +1,5 @@
+![AegisVault Logo](static/aegisvault.jpg)
+
 # AegisVault
 
 ## **Overview**
