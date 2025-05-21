@@ -1,6 +1,7 @@
 import sqlite3
 import os
 from encryption import encrypt_data, decrypt_data
+import json
 
 DB_PATH = os.path.join("data", "passwords.db")  # ✅ Updated location
 DATABASE_FILE = "../data/passwords.db"
@@ -156,3 +157,37 @@ def get_total_stored_passwords():
 
     conn.close()
     return total
+
+def get_all_credentials():
+    """Fetches all stored passwords."""
+    conn = sqlite3.connect("../data/passwords.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT website, username, password FROM credentials")
+    credentials = [
+        {
+            "website": row[0],
+            "username": decrypt_data(row[1]),  # 🔓 Ensure proper decryption
+            "password": decrypt_data(row[2])  # 🔓 Ensure plaintext display
+        }
+        for row in cursor.fetchall()
+    ]
+
+    conn.close()
+    return credentials
+
+
+def export_database():
+    """Creates a decrypted JSON backup of all stored credentials."""
+    credentials = get_all_credentials()  # 🔓 Already decrypting usernames & passwords
+
+    backup_dir = "../backup"
+    os.makedirs(backup_dir, exist_ok=True)  # ✅ Ensure the folder exists
+
+    backup_path = os.path.join(backup_dir, "AegisVault_Backup.json")
+
+    with open(backup_path, "w") as backup_file:
+        json.dump(credentials, backup_file, indent=4)  # ✅ Save decrypted version
+
+    return backup_path  # ✅ Path for Flask to serve
+

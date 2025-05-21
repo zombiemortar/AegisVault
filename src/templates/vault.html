@@ -2,9 +2,114 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vault - AegisVault</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
+
+    <!-- 🔹 Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{{ url_for('static', filename='aegisvault.jpg') }}" alt="AegisVault Logo" width="40" height="40">
+                <span>AegisVault</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">🏠 Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('add_password') }}">🔑 Add Password</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('settings') }}">⚙️ Settings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">🚪 Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 🔹 Vault Container -->
+    <div class="dashboard-container">
+        <h2>Password Vault</h2>
+        <table class="table table-dark table-striped">
+            <thead>
+                <tr>
+                    <th>Website</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for credential in credentials %}
+                <tr>
+                    <td>{{ credential.website }}</td>
+                    <td>{{ credential.username }}</td>
+                    <td>
+                        <input type="password" value="{{ credential.password }}" class="password-field" readonly>
+                        <button class="toggle-visibility" onclick="togglePassword(this)">👁</button>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="copyToClipboard('{{ credential.password }}')">📋 Copy</button>
+                        <button class="btn btn-warning btn-sm" onclick="updatePassword('{{ credential.website }}')">✏️ Update</button>
+                        <button class="btn btn-danger btn-sm" onclick="deletePassword('{{ credential.website }}')">🗑 Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 🔹 JavaScript for Interactivity -->
+    <script>
+        function togglePassword(button) {
+            let input = button.previousElementSibling;
+            input.type = input.type === "password" ? "text" : "password";
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert("✅ Password copied to clipboard!");
+        }
+
+        function updatePassword(website) {
+            let newPassword = prompt("Enter a new password for " + website + ":");
+            if (newPassword) {
+                fetch("/update_password", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({website: website, new_password: newPassword})
+                }).then(response => {
+                    if (response.ok) {
+                        alert("✅ Password updated successfully!");
+                        location.reload();
+                    } else {
+                        alert("❌ Failed to update password.");
+                    }
+                });
+            }
+        }
+
+        function deletePassword(website) {
+            if (confirm("Are you sure you want to delete credentials for " + website + "?")) {
+                fetch("/delete_password", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({website: website})
+                }).then(response => {
+                    if (response.ok) {
+                        alert("✅ Password deleted successfully!");
+                        location.reload();
+                    } else {
+                        alert("❌ Failed to delete password.");
+                    }
+                });
+            }
+        }
+    </script>
+
 
 </body>
 </html>

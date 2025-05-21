@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash
+from flask import Flask, render_template, request, redirect, session, url_for, flash, send_file
 import sqlite3
 from encryption import encrypt_data, decrypt_data  # ✅ Import encryption functions
 from session import session_expire_event, SessionManager  # ✅ Import session expiration event
-from database import init_db, store_master_account, load_master_account, store_password, get_total_stored_passwords
+from database import init_db, store_master_account, load_master_account, store_password, get_total_stored_passwords, update_password, delete_password, export_database
 
 # 🔒 Flask app setup
 app = Flask(__name__)
@@ -122,9 +122,44 @@ def create_account():
 
     return render_template("create_account.html")
 
+
 @app.route("/vault")
 def vault():
-    return render_template("vault.html")  # ✅ Should point to an actual template
+    """Fetch stored credentials and decrypt passwords before displaying."""
+    conn = sqlite3.connect("../data/passwords.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT website, username, password FROM credentials")
+    credentials = [
+        {
+            "website": row[0],
+            "username": decrypt_data(row[1]),  # ✅ Just decrypt, no encryption needed
+            "password": decrypt_data(row[2])   # ✅ Ensure plaintext display
+        }
+        for row in cursor.fetchall()
+    ]
+
+    conn.close()
+    return render_template("vault.html", credentials=credentials)
+
+@app.route("/update_password", methods=["POST"])
+def update_password_route():
+    """Updates stored password securely."""
+    data = request.get_json()
+    website = data["website"]
+    new_password = data["new_password"]  # ✅ Keep plaintext; database.py encrypts automatically
+
+    update_password(website, new_password)  # 🔒 Database will handle encryption
+    return {"status": "success"}, 200
+
+@app.route("/delete_password", methods=["POST"])
+def delete_password_route():
+    """Deletes stored credentials."""
+    data = request.get_json()
+    website = data["website"]
+
+    delete_password(website)
+    return {"status": "success"}, 200
 
 @app.route("/settings")
 def settings():
@@ -201,6 +236,13 @@ def delete_account():
     except Exception as e:
         flash(f"Error deleting account: {str(e)}", "danger")
         return redirect(url_for('settings'))
+
+@app.route("/export_backup")
+def export_backup():
+    """Serves the encrypted database backup as a downloadable file."""
+    backup_path = export_database()  # 🔄 Generate backup before serving
+    return send_file(backup_path, as_attachment=True)
+
 
 
 if __name__ == "__main__":

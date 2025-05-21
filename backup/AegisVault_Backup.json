@@ -1,0 +1,17 @@
+[
+    {
+        "website": "google.com",
+        "username": "zombiemortar",
+        "password": "test1"
+    },
+    {
+        "website": "twitter.com",
+        "username": "zombiemortar",
+        "password": "test"
+    },
+    {
+        "website": "methodist.edu",
+        "username": "joseph_sparks",
+        "password": "testing_password"
+    }
+]
