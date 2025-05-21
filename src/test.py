@@ -1,5 +1,5 @@
 import sqlite3
-from encryption import encrypt_data, decrypt_data
+from encryption import encrypt_data
 
 DB_PATH = "../data/passwords.db"
 

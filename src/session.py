@@ -44,8 +44,6 @@ class SessionManager:
         """Monitors session timeout and expires if idle for too long."""
         while self.active:
             time.sleep(5)  # ✅ Check every 5 seconds
-            remaining_time = SESSION_TIMEOUT - (time.time() - self.start_time)
-            #print(f"⏳ Time left before expiration: {remaining_time:.2f} seconds")
 
             if not self.validate_session():
                 break

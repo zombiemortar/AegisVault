@@ -226,13 +226,18 @@ def delete_account():
         flash("Error: No user logged in.", "danger")
         return redirect(url_for('settings'))
 
-    # 🔥 Remove user from database (ensure this fits your schema)
     try:
-        db.execute("DELETE FROM users WHERE id = ?", (user_id,))
-        db.commit()
+        conn = get_db_connection()  # ✅ Get a proper DB connection
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM users WHERE username = ?", (user_id,))  # 🔄 Ensure field matches schema
+        conn.commit()
+        conn.close()
+
         session.clear()  # 🚀 Log user out after deletion
         flash("Your account has been successfully deleted.", "success")
-        return redirect(url_for('create_account'))  # Redirect to signup after deletion
+        return redirect(url_for('create_account'))  # 🔄 Redirect to account creation
+
     except Exception as e:
         flash(f"Error deleting account: {str(e)}", "danger")
         return redirect(url_for('settings'))

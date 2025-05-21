@@ -6,6 +6,7 @@ KEY_FILE = "encryption_key.key"
 
 def generate_key():
     """Generates and returns a persistent encryption key only if none exists."""
+    key = None
     if not os.path.exists("encryption_key.key"):
         key = Fernet.generate_key()
         with open("encryption_key.key", "wb") as key_file:

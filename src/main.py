@@ -4,8 +4,8 @@ from database import (
     store_password, retrieve_password, store_master_account, load_master_account,
     delete_password, update_password, init_db, get_all_stored_urls
 )
-from encryption import generate_key, encrypt_data, decrypt_data
-from session import SessionManager
+from encryption import generate_key, encrypt_data
+from session import SessionManager, session_expire_event
 
 # Initialize database and encryption key on startup
 init_db()
@@ -18,7 +18,7 @@ print("🔗 Stored Website URLs:", stored_urls)
 
 
 def startup_menu():
-    """Initial prompt to login or exit."""
+    """Initial prompt to log in or exit."""
     global session_active
     session_active = False  # Ensure fresh start each time
 
@@ -56,9 +56,10 @@ def login():
         print("✅ Login successful! Starting session...")
         session.start_session(entered_username)  # ✅ Start session tracking
         main_menu()  # ✅ Transition to main menu
+        return None
     else:
         print("❌ Incorrect username or password. Try again.")
-
+        return None
 
 
 def store_credentials():
@@ -74,6 +75,7 @@ def store_credentials():
 
     store_password(website, username, password)
     print("✅ Password stored securely!")
+    return None
 
 
 def retrieve_credentials():
@@ -167,7 +169,7 @@ def logout():
 def check_session():
     """Handles expired sessions and returns to startup menu if needed."""
     if not session.validate_session():
-        startup_menu()  # ✅ Transition back to login AFTER expiration is detected
+        startup_menu()  # ✅ Transition back to log in AFTER expiration is detected
 
 if __name__ == "__main__":
     startup_menu()
