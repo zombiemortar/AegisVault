@@ -13,12 +13,12 @@ Built with **Python and PyQt**, AegisVault prioritizes both
 manage credentials securely.  
 
 ## **Features**
-✅ **Secure Password Storage** with encryption
-✅ **Effortless CRUD Operations** (Create, Read, Update, Delete)
-✅ **Encrypted Database Export for Backups**
-✅ **Smooth UI with Interactive Elements**
-✅ **Session Management and Account Management**
-✅ **Fully Responsible Design with Bootstrap Integration**
+-✅ **Secure Password Storage** with encryption
+-✅ **Effortless CRUD Operations** (Create, Read, Update, Delete)
+-✅ **Encrypted Database Export for Backups**
+-✅ **Smooth UI with Interactive Elements**
+-✅ **Session Management and Account Management**
+-✅ **Fully Responsible Design with Bootstrap Integration**
 
 ## **Installation**
 ### **1. Clone the repository**
@@ -44,16 +44,16 @@ flask run app.py```
 ```
 ## **Usage**
 ### **1. Run the application**
-🔹 **Add Passwords via** ```add_password.html```
-🔹 **View & Manage stored credentials in:** ```passwords.html```
-🔹 **Export your database for backup in:** ```settings.html```
-🔹 **Secure session encryption and logout automatically**
+-🔹 **Add Passwords via** ```add_password.html```
+-🔹 **View & Manage stored credentials in:** ```passwords.html```
+-🔹 **Export your database for backup in:** ```settings.html```
+-🔹 **Secure session encryption and logout automatically**
 
 ## Future Revisions:
 
-🔄 **Theme Customization**
-🔄 **Two-Factor Authentication**
-🔄 **Advanced Session tracking and expiration options**
+-🔄 **Theme Customization**
+-🔄 **Two-Factor Authentication**
+-🔄 **Advanced Session tracking and expiration options**
 
 ## **Contributors**
 Created by **Joseph Sparks**. Contributions welcome after v1.0!  
