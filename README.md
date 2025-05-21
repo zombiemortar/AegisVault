@@ -45,16 +45,16 @@ flask run app.py```
 ```
 ## **Usage**
 ### **1. Run the application**
--🔹 **Add Passwords via** ```add_password.html```
--🔹 **View & Manage stored credentials in:** ```passwords.html```
--🔹 **Export your database for backup in:** ```settings.html```
--🔹 **Secure session encryption and logout automatically**
+- 🔹 **Add Passwords via** ```add_password.html```
+- 🔹 **View & Manage stored credentials in:** ```passwords.html```
+- 🔹 **Export your database for backup in:** ```settings.html```
+- 🔹 **Secure session encryption and logout automatically**
 
 ## Future Revisions:
 
--🔄 **Theme Customization**
--🔄 **Two-Factor Authentication**
--🔄 **Advanced Session tracking and expiration options**
+- 🔄 **Theme Customization**
+- 🔄 **Two-Factor Authentication**
+- 🔄 **Advanced Session tracking and expiration options**
 
 ## **Contributors**
 Created by **Joseph Sparks**. Contributions welcome after v1.0!  
