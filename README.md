@@ -1,4 +1,7 @@
-![AegisVault Logo](src/static/aegisvault.jpg)
+<p align="center">
+    <img src="src/static/aegisvault.jpg" alt="AegisVault Logo">
+</p>
+
 
 # AegisVault
 
