@@ -13,12 +13,13 @@ Built with **Python and PyQt**, AegisVault prioritizes both
 manage credentials securely.  
 
 ## **Features**
--✅ **Secure Password Storage** with encryption
--✅ **Effortless CRUD Operations** (Create, Read, Update, Delete)
--✅ **Encrypted Database Export for Backups**
--✅ **Smooth UI with Interactive Elements**
--✅ **Session Management and Account Management**
--✅ **Fully Responsible Design with Bootstrap Integration**
+- ✅ **Secure Password Storage** with encryption
+- ✅ **Effortless CRUD Operations** (Create, Read, Update, Delete)
+- ✅ **Encrypted Database Export for Backups**
+- ✅ **Smooth UI with Interactive Elements**
+- ✅ **Session Expiration & Account Management**
+- ✅ **Fully Responsive Design (Bootstrap Integration)**
+
 
 ## **Installation**
 ### **1. Clone the repository**
