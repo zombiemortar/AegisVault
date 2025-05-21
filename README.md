@@ -1,4 +1,4 @@
-![AegisVault Logo](static/aegisvault.jpg)
+![AegisVault Logo](src/static/aegisvault.jpg)
 
 # AegisVault
 
