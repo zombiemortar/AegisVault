@@ -1,3 +1,5 @@
+import json
+import traceback
 from flask import Flask, render_template, request, redirect, session, url_for, flash, send_file
 import sqlite3
 from encryption import encrypt_data, decrypt_data  # ✅ Import encryption functions
@@ -249,6 +251,38 @@ def export_backup():
     return send_file(backup_path, as_attachment=True)
 
 
+@app.route('/import_backup', methods=['POST'])
+def import_backup():
+    """Handles restoring passwords from a previously exported JSON file."""
+    uploaded_file = request.files.get('backup_file')
+
+    if not uploaded_file or uploaded_file.filename == '':
+        flash("No file selected. Please upload a valid JSON file.", "danger")
+        session.modified = True  # 🔄 Ensure session updates to display messages
+        return redirect(url_for('settings'))
+
+    try:
+        # ✅ Load JSON data
+        backup_data = json.load(uploaded_file)
+        print(f"DEBUG: Backup Data Loaded → {backup_data}")  # 🔎 Verify JSON structure
+
+        # 🔥 Pass each entry directly to `store_password()`
+        for entry in backup_data:
+            store_password(entry["website"], entry["username"], entry["password"])
+            print(f"✅ Stored: {entry['website']} | {entry['username']} | {entry['password']}")  # Debugging output
+
+        flash("Backup imported successfully!", "success")
+        session.modified = True  # 🔄 Ensure flash messages persist
+
+    except json.JSONDecodeError as json_err:
+        flash(f"Invalid JSON format: {json_err}", "danger")
+        print(f"❌ JSON Parsing Error: {json_err}")  # 🔎 Debugging output
+
+    except Exception as e:
+        flash(f"Unexpected error: {str(e)}", "danger")
+        print(f"❌ General Error: {str(e)}")  # 🔎 Debugging output
+
+    return redirect(url_for('settings'))
 
 if __name__ == "__main__":
     app.run(debug=True)
