@@ -1,29 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AegisVault Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="login-container">
-        <img src="{{ url_for('static', filename='aegisvault.jpg') }}" alt="AegisVault Logo" class="logo-blur">
+    <div class="container min-vh-100 d-flex align-items-center justify-content-center">
+        <div class="login-container">
+            <img src="{{ url_for('static', filename='aegisvault.jpg') }}" alt="AegisVault Logo" class="logo-blur">
+            <h2>Login to AegisVault</h2>
+            
+            <form action="/" method="POST">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
 
-        <h2>Login to AegisVault</h2>
-        <form action="/" method="POST">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
 
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-
-            <button type="submit" class="btn-primary">Login</button>
-        </form>
-        <a href="/create_account" class="create-account-button">Create Account</a>
+                <button type="submit" class="btn-primary">Login</button>
+                <a href="/create_account" class="create-account-button">Create Account</a>
+            </form>
+        </div>
     </div>
+
+    <footer class="footer bg-dark text-white text-center py-3">
+        <div class="container">
+            <span>&copy; 2025 AegisVault | Designed by Joseph Sparks | All rights reserved.</span>
+        </div>
+    </footer>
 </body>
-<footer class="footer bg-dark text-white text-center py-3">
-    <div class="container">
-        <span>&copy; 2025 AegisVault | Designed by Joseph Sparks | All rights reserved.</span>
-    </div>
-</footer>
 </html>

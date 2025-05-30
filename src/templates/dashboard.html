@@ -15,65 +15,71 @@
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark w-100">
-    <div class="container-fluid">
-        <!-- Logo + Text Side-by-Side -->
-        <a class="navbar-brand d-flex align-items-center" href="#">
-            <img src="{{ url_for('static', filename='aegisvault.jpg') }}" alt="AegisVault Logo" width="40" height="40" class="me-2 navbar-logo">
-            <span>AegisVault</span>
-        </a>
+        <div class="container-fluid">
+            <!-- Logo + Text Side-by-Side -->
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{{ url_for('static', filename='aegisvault.jpg') }}" alt="AegisVault Logo" width="40" height="40" class="me-2 navbar-logo">
+                <span>AegisVault</span>
+            </a>
 
-        <!-- Navbar Toggler for Mobile -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+            <!-- Navbar Toggler for Mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-        <!-- Right-aligned links -->
-        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('vault') }}">🔒 Password Vault</a></li>
-                <li class="nav-item"><a class="nav-link active" href="{{ url_for('add_password') }}">🔑 Add Password</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('settings') }}">⚙️ Settings</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">🚪 Logout</a></li>
-            </ul>
+            <!-- Right-aligned links -->
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('vault') }}">🔒 Password Vault</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('add_password') }}">🔑 Add Password</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('settings') }}">⚙️ Settings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">🚪 Logout</a></li>
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
     <!-- Dashboard Content -->
-    <main class="container mt-4">
-        <section class="dashboard-info text-center p-4 bg-dark text-white rounded">
-            <h2>Account Overview</h2>
-            <p>Logged in as: <strong>{{ username }}</strong></p>
-            <p>Total Stored Passwords: <strong>{{ total_passwords }}</strong></p>
-        </section>
+    <div class="container py-4">
+        <!-- Account Overview -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-12">
+                <div class="dashboard-overview bg-dark text-white rounded p-4 text-center">
+                    <h2>Account Overview</h2>
+                    <p>Logged in as: <strong>{{ username }}</strong></p>
+                    <p>Total Stored Passwords: <strong>{{ total_passwords }}</strong></p>
+                </div>
+            </div>
+        </div>
 
         <!-- Quick Actions -->
-        <section class="row mt-4">
+        <div class="row justify-content-center g-4">
             <div class="col-md-4">
-                <div class="card bg-dark text-white p-3 text-center">
+                <div class="dashboard-card bg-dark text-white p-4 text-center h-100">
                     <h3>Add New Password</h3>
-                    <a href="{{ url_for('add_password') }}" class="btn btn-primary">➕ Add</a>
+                    <a href="{{ url_for('add_password') }}" class="btn btn-primary mt-3">➕ Add</a>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card bg-dark text-white p-3 text-center">
+                <div class="dashboard-card bg-dark text-white p-4 text-center h-100">
                     <h3>View Stored Credentials</h3>
-                    <a href="{{ url_for('vault') }}" class="btn btn-primary">🔍 View</a>
+                    <a href="{{ url_for('vault') }}" class="btn btn-primary mt-3">🔍 View</a>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card bg-dark text-white p-3 text-center">
+                <div class="dashboard-card bg-dark text-white p-4 text-center h-100">
                     <h3>Modify Your Account</h3>
-                    <a href="{{ url_for('settings') }}" class="btn btn-primary">⚙️ Edit</a>
+                    <a href="{{ url_for('settings') }}" class="btn btn-primary mt-3">⚙️ Edit</a>
                 </div>
             </div>
-        </section>
-    </main>
-</body>
-
-<footer class="footer bg-dark text-white text-center py-3">
-    <div class="container">
-        <span>&copy; 2025 AegisVault | Designed by Joseph Sparks | All rights reserved.</span>
+        </div>
     </div>
-</footer>
+
+    <footer class="footer bg-dark text-white text-center py-3 mt-auto">
+        <div class="container">
+            <span>&copy; 2025 AegisVault | Designed by Joseph Sparks | All rights reserved.</span>
+        </div>
+    </footer>
+</body>
+</html>
 </html>
