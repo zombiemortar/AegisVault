@@ -1,41 +1,91 @@
+/* Theme Variables */
+:root {
+    /* Dark theme (default) */
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #242424;
+    --bg-navbar: #1e3a8a;
+    --text-primary: #ffffff;
+    --text-secondary: #bbb;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --input-bg: #2a2a2a;
+    --input-border: #333333;
+    --card-shadow: rgba(0, 120, 212, 0.15);
+}
+
+/* Light theme */
+[data-theme="light"] {
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --bg-navbar: #0078D4;
+    --text-primary: #2d2d2d;
+    --text-secondary: #666666;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --input-bg: #ffffff;
+    --input-border: #e0e0e0;
+    --card-shadow: rgba(0, 0, 0, 0.08);
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    display: none;
+}
+
 /* Global Styles */
 body {
     font-family: "Segoe UI", sans-serif;
-    background-color: #121212 !important; /* Dark mode */
-    color: #ffffff;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary);
     min-height: 100vh;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
+    position: relative;
+    padding-bottom: 60px; /* Height of footer */
 }
 
 /* Header */
 header {
-    background: #1e3a8a; /* Microsoft-style blue */
+    background: var(--bg-navbar);
     padding: 15px;
     text-align: center;
 }
 
 header h1 {
-    color: #ffffff;
+    color: var(--text-primary);
     margin: 0;
 }
 
 /* Navbar */
 .navbar {
-    width: 100% !important; /* ✅ Ensures full width */
-    background-color: #1e3a8a !important; /* Microsoft-style blue */
+    width: 100% !important;
+    background-color: var(--bg-navbar) !important;
     padding: 10px 20px;
 }
 
-.navbar-nav .nav-link {
+/* Navbar brand (logo + text) always white */
+.navbar-brand,
+.navbar-brand span {
     color: #ffffff !important;
-    font-size: 18px;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.navbar-brand:hover,
+.navbar-brand:focus {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Ensure the navbar text is always white regardless of theme */
+.navbar,
+.navbar-nav .nav-link,
+.navbar .nav-link,
+.navbar-brand {
+    color: #ffffff !important;
 }
 
 .navbar-nav .nav-link:hover {
-    color: #0078D4 !important; /* Subtle blue effect */
+    color: rgba(255, 255, 255, 0.8) !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 /* Dashboard Content */
@@ -43,7 +93,7 @@ header h1 {
     text-align: center;
     margin: 20px auto;
     padding: 15px;
-    background: #1e1e1e;
+    background: var(--bg-secondary);
     border-radius: 10px;
     width: 60%;
 }
@@ -57,7 +107,7 @@ header h1 {
 }
 
 .card {
-    background: #1e1e1e;
+    background: var(--bg-secondary);
     padding: 20px;
     border-radius: 10px;
     text-align: center;
@@ -85,10 +135,10 @@ input {
     width: 100%;
     padding: 10px;
     margin: 5px 0;
-    border: 1px solid #444444;
+    border: 1px solid var(--input-border);
     border-radius: 5px;
-    background-color: #1a1a1a;
-    color: #ffffff;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
     transition: 0.3s ease-in-out;
 }
 
@@ -119,10 +169,10 @@ input:focus {
 }
 
 .login-container {
-    background: #1e1e1e;
+    background: var(--bg-secondary);
     padding: 2rem;
     border-radius: 12px;
-    box-shadow: 0 0 15px rgba(0, 120, 212, 0.2);
+    box-shadow: 0 0 15px var(--card-shadow);
     text-align: center;
     width: 100%;
     max-width: 400px;
@@ -130,6 +180,7 @@ input:focus {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    margin-bottom: 80px; /* Ensure space for footer */
 }
 
 .login-container img {
@@ -140,10 +191,10 @@ input:focus {
 }
 
 .login-container h2 {
-    color: #ffffff;
+    color: var(--text-primary);
     margin-bottom: 2rem;
     font-size: 2rem;
-    text-shadow: 0 0 10px rgba(0, 120, 212, 0.3);
+    text-shadow: 0 0 10px var(--card-shadow);
 }
 
 .login-container form {
@@ -156,7 +207,7 @@ input:focus {
     display: block;
     text-align: left;
     margin-bottom: 0.5rem;
-    color: #ffffff;
+    color: var(--text-primary);
     font-size: 1rem;
     font-weight: 500;
 }
@@ -165,10 +216,10 @@ input:focus {
     width: 100%;
     padding: 0.75rem 1rem;
     margin-bottom: 1.5rem;
-    background-color: #2d2d2d;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
-    color: #ffffff;
+    color: var(--text-primary);
     font-size: 1rem;
     transition: all 0.3s ease;
     box-sizing: border-box;
@@ -212,50 +263,80 @@ input:focus {
 }
 
 .dashboard-wrapper {
-    background-color: #131313 !important; /* ✅ Keeps it within our dark theme */
-    color: white;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary);
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0px 0px 12px rgba(0, 120, 212, 0.5); /* 🔥 Soft glow effect */
+    box-shadow: 0px 0px 12px var(--card-shadow);
     width: 85%;
     margin: auto;
 }
 
 .action-card {
-    background: #1e3a8a !important; /* ✅ Restores blue styling */
+    background-color: var(--bg-secondary) !important;
     padding: 20px;
     border-radius: 8px;
     text-align: center;
-    box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2); /* 🔥 Light glow effect */
-    opacity: 1 !important; /* 🚀 Prevents any fading */
+    box-shadow: 0px 0px 10px var(--card-shadow);
+    opacity: 1 !important;
 }
 
 .dashboard-container {
-    background-color: #1e1e1e !important; /* ✅ Preserves dark theme */
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0px 0px 12px rgba(0, 120, 212, 0.5); /* 🔥 Blue glow */
-    opacity: 1 !important; /* 🚀 Ensures full visibility */
-    filter: none !important; /* 🔥 Prevents unintended overlay effects */
+    box-shadow: 0px 0px 12px var(--card-shadow);
+    opacity: 1 !important;
+    filter: none !important;
 }
 
+/* Footer styling */
 .footer {
     position: absolute;
     bottom: 0;
+    left: 0;
     width: 100%;
-    background-color: #1e1e1e;
-    padding: 10px;
+    background-color: #1a1f2e !important; /* Darker, more subtle background */
+    padding: 10px 0;
     font-size: 14px;
-    color: #bbb;
+    text-align: center;
 }
 
+.footer,
+.footer span,
+.footer div {
+    color: #ffffff !important;
+    text-shadow: none;
+}
+
+/* Footer link styling */
+.footer a {
+    color: #ffffff;
+    text-decoration: underline;
+    transition: opacity 0.3s ease;
+}
+
+.footer a:hover {
+    opacity: 0.8;
+}
+
+/* Settings container - ensure theme colors override Bootstrap */
 .settings-container {
-    background-color: #1e1e1e;
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0px 0px 12px rgba(0, 120, 212, 0.5);
+    box-shadow: 0px 0px 12px var(--card-shadow);
     width: 70%;
     margin: auto;
+}
+
+.settings-container h2,
+.settings-container h3,
+.settings-container label,
+.settings-container p {
+    color: var(--text-primary) !important;
 }
 
 .settings-section {
@@ -359,16 +440,16 @@ input {
 
 /* Dashboard Specific Styles */
 .dashboard-overview {
-    background-color: #1e1e1e;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 15px rgba(0, 120, 212, 0.2);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 15px var(--card-shadow);
 }
 
 .dashboard-card {
-    background-color: #1e1e1e;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0, 120, 212, 0.2);
+    box-shadow: 0 0 15px var(--card-shadow);
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -382,4 +463,207 @@ input {
 
 .dashboard-card .btn {
     margin-top: auto;
+}
+
+/* Table Styling */
+.table-dark {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+.table-dark thead th {
+    background-color: var(--bg-navbar) !important;
+    color: #ffffff !important;
+}
+
+.table-dark tbody td {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+.table-dark.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--bg-primary) !important;
+}
+
+/* Remove hardcoded colors from dashboard elements */
+.dashboard-container h2,
+.dashboard-container label,
+.dashboard-container input,
+.dashboard-container textarea,
+.dashboard-container button {
+    color: var(--text-primary) !important;
+}
+
+/* Dashboard Cards and Overview */
+.dashboard-overview,
+.dashboard-card,
+.action-card,
+.settings-container {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: 0 0 15px var(--card-shadow);
+}
+
+/* Ensure all text elements in cards use theme colors */
+.dashboard-overview h2,
+.dashboard-overview p,
+.dashboard-card h2,
+.dashboard-card h3,
+.dashboard-card p,
+.action-card h2,
+.action-card h3,
+.action-card p,
+.settings-container h2,
+.settings-container h3,
+.settings-container p,
+.settings-section h3,
+.form-label {
+    color: var(--text-primary) !important;
+}
+
+/* Form elements */
+input,
+textarea,
+select {
+    background-color: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--input-border) !important;
+}
+
+/* Table styles */
+.table {
+    color: var(--text-primary) !important;
+}
+
+.table thead th {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-navbar) !important;
+}
+
+.table tbody td {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-secondary) !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--bg-primary) !important;
+}
+
+/* Ensure strong tags and other text elements follow theme */
+strong, span, p, h1, h2, h3, h4, h5, h6, label {
+    color: var(--text-primary) !important;
+}
+
+/* Theme button in settings */
+.theme-switch-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+#theme-switch {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.theme-switch {
+    cursor: pointer;
+    display: inline-block;
+    width: 160px;
+    height: 40px;
+    position: relative;
+}
+
+.switch-track {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    transition: all 0.3s ease;
+}
+
+.switch-thumb {
+    position: absolute;
+    width: 80px;
+    height: 32px;
+    background: linear-gradient(to right, #0078D7, #00BFFF);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#theme-switch:checked + .theme-switch .switch-thumb {
+    transform: translateX(76px);
+}
+
+.theme-icon {
+    font-size: 16px;
+    position: absolute;
+    transition: opacity 0.3s ease;
+}
+
+.theme-icon.light {
+    opacity: 1;
+}
+
+.theme-icon.dark {
+    opacity: 0;
+}
+
+#theme-switch:checked + .theme-switch .theme-icon.light {
+    opacity: 0;
+}
+
+#theme-switch:checked + .theme-switch .theme-icon.dark {
+    opacity: 1;
+}
+
+.switch-label {
+    position: absolute;
+    font-size: 14px;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+}
+
+.switch-label.light {
+    right: 12px;
+    opacity: 1;
+}
+
+.switch-label.dark {
+    left: 12px;
+    opacity: 0;
+}
+
+#theme-switch:checked + .theme-switch .switch-label.light {
+    opacity: 0;
+}
+
+#theme-switch:checked + .theme-switch .switch-label.dark {
+    opacity: 1;
+}
+
+.switch-track:hover {
+    box-shadow: 0 0 8px var(--card-shadow);
+}
+
+/* Container for login page */
+.login-page-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
 }

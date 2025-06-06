@@ -1,33 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account - AegisVault</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
 </head>
 <body>
-    <div class="login-container">
-        <img src="{{ url_for('static', filename='aegisvault.jpg') }}" alt="AegisVault Logo" class="logo-blur">
+    <div class="login-page-container">
+        <div class="login-container">
+            <img src="{{ url_for('static', filename='aegisvault.jpg') }}" alt="AegisVault Logo" class="logo-blur">
+            <h2>Create Your AegisVault Account</h2>
+            <form action="/create_account" method="POST">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
 
-        <h2>Create Your AegisVault Account</h2>
-        <form action="/create_account" method="POST">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
 
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+                <label for="confirm-password">Confirm Password:</label>
+                <input type="password" id="confirm-password" name="confirm_password" required>
 
-            <label for="confirm-password">Confirm Password:</label>
-            <input type="password" id="confirm-password" name="confirm_password" required>
-
-            <button type="submit" class="btn-primary">Create Account</button>
-        </form>
-
-        <p>Already have an account? <a href="/">Login here</a></p>
+                <button type="submit" class="btn-primary">Create Account</button>
+            </form>
+            <p>Already have an account? <a href="/">Login here</a></p>
+        </div>
     </div>
+
+    <footer class="footer">
+        <div class="container">
+            <span>&copy; 2025 AegisVault | Designed by Joseph Sparks | All rights reserved.</span>
+        </div>
+    </footer>
 </body>
-<footer class="footer bg-dark text-white text-center py-3">
-    <div class="container">
-        <span>&copy; 2025 AegisVault | Designed by Joseph Sparks | All rights reserved.</span>
-    </div>
-</footer>
 </html>
