@@ -37,6 +37,43 @@
             <div class="col-12">
                 <div class="dashboard-card p-4">
                     <h2 class="mb-4">Password Vault</h2>
+                    
+                    <!-- 🔍 Search Bar -->
+                    <div class="row mb-4">
+                        <div class="col-md-8 mx-auto">
+                            <div class="search-container">
+                                <div class="input-group search-input-group">
+                                    <span class="input-group-text">
+                                        🔍
+                                    </span>
+                                    <input type="text" 
+                                           id="searchInput" 
+                                           class="form-control" 
+                                           placeholder="Search by website, username, or any text..."
+                                           aria-label="Search credentials">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                                        Clear
+                                    </button>
+                                </div>
+                                <div class="form-text text-muted mt-2">
+                                    Search filters credentials in real-time as you type
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 📊 Search Results Summary -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="search-results-summary d-flex justify-content-between align-items-center">
+                                <span class="text-muted">
+                                    Showing <span id="visibleCount">0</span> of <span id="totalCount">{{ credentials|length }}</span> credentials
+                                </span>
+                                <span class="text-muted search-status" id="searchStatus"></span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -47,9 +84,9 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="credentialsTableBody">
                                 {% for credential in credentials %}
-                                <tr>
+                                <tr class="credential-row" data-website="{{ credential.website|lower }}" data-username="{{ credential.username|lower }}">
                                     <td>{{ credential.website }}</td>
                                     <td>{{ credential.username }}</td>
                                     <td>
@@ -66,6 +103,14 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- 🔍 No Results Message -->
+                    <div id="noResultsMessage" class="no-results-message" style="display: none;">
+                        <div class="text-muted">
+                            <h4>🔍 No credentials found</h4>
+                            <p>Try adjusting your search terms or check the spelling</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -73,6 +118,142 @@
 
     <!-- 🔹 JavaScript for Interactivity -->
     <script>
+        // Search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const totalCount = document.getElementById('totalCount');
+            const visibleCount = document.getElementById('visibleCount');
+            const searchStatus = document.getElementById('searchStatus');
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            
+            // Initialize counts
+            updateCounts();
+            
+            // Add search event listener with debouncing for better performance
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(performSearch, 150); // 150ms delay for better UX
+            });
+            
+            // Add keyboard shortcuts
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    clearSearch();
+                } else if (e.key === 'Enter' && e.ctrlKey) {
+                    // Ctrl+Enter to focus on first visible result
+                    focusFirstVisibleResult();
+                }
+            });
+            
+            // Add search input focus on page load
+            searchInput.focus();
+        });
+
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('.credential-row');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const website = row.getAttribute('data-website');
+                const username = row.getAttribute('data-username');
+                
+                if (searchTerm === '' || 
+                    website.includes(searchTerm) || 
+                    username.includes(searchTerm)) {
+                    row.style.display = '';
+                    row.classList.remove('highlight');
+                    
+                    // Highlight search terms if they exist
+                    if (searchTerm !== '') {
+                        highlightSearchTerms(row, searchTerm);
+                    }
+                    
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                    row.classList.remove('highlight');
+                }
+            });
+            
+            updateCounts();
+            updateSearchStatus(searchTerm);
+            showNoResultsMessage(visibleCount === 0 && searchTerm !== '');
+        }
+
+        function highlightSearchTerms(row, searchTerm) {
+            const websiteCell = row.querySelector('td:first-child');
+            const usernameCell = row.querySelector('td:nth-child(2)');
+            
+            if (websiteCell && websiteCell.textContent.toLowerCase().includes(searchTerm)) {
+                websiteCell.innerHTML = highlightText(websiteCell.textContent, searchTerm);
+            }
+            
+            if (usernameCell && usernameCell.textContent.toLowerCase().includes(searchTerm)) {
+                usernameCell.innerHTML = highlightText(usernameCell.textContent, searchTerm);
+            }
+        }
+
+        function highlightText(text, searchTerm) {
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<mark style="background-color: rgba(0, 120, 215, 0.3); padding: 2px 4px; border-radius: 3px;">$1</mark>');
+        }
+
+        function updateCounts() {
+            const visibleRows = document.querySelectorAll('.credential-row:not([style*="display: none"])');
+            const totalRows = document.querySelectorAll('.credential-row');
+            
+            document.getElementById('visibleCount').textContent = visibleRows.length;
+            document.getElementById('totalCount').textContent = totalRows.length;
+        }
+
+        function updateSearchStatus(searchTerm) {
+            const searchStatus = document.getElementById('searchStatus');
+            if (searchTerm) {
+                searchStatus.textContent = `Filtering by: "${searchTerm}"`;
+            } else {
+                searchStatus.textContent = '';
+            }
+        }
+
+        function showNoResultsMessage(show) {
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            noResultsMessage.style.display = show ? 'block' : 'none';
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            restoreOriginalText();
+            performSearch();
+            document.getElementById('searchInput').focus();
+        }
+
+        function restoreOriginalText() {
+            const rows = document.querySelectorAll('.credential-row');
+            rows.forEach(row => {
+                const websiteCell = row.querySelector('td:first-child');
+                const usernameCell = row.querySelector('td:nth-child(2)');
+                
+                // Restore original text content
+                if (websiteCell) {
+                    websiteCell.innerHTML = websiteCell.textContent;
+                }
+                if (usernameCell) {
+                    usernameCell.innerHTML = usernameCell.textContent;
+                }
+            });
+        }
+
+        function focusFirstVisibleResult() {
+            const firstVisibleRow = document.querySelector('.credential-row:not([style*="display: none"])');
+            if (firstVisibleRow) {
+                firstVisibleRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstVisibleRow.classList.add('highlight');
+                setTimeout(() => firstVisibleRow.classList.remove('highlight'), 2000);
+            }
+        }
+
         function togglePassword(button) {
             let input = button.previousElementSibling;
             input.type = input.type === "password" ? "text" : "password";
