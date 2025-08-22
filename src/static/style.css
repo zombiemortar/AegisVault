@@ -801,3 +801,141 @@ select {
     transform: scale(0.98);
     transition: transform 0.1s ease;
 }
+
+/* Password Strength Analysis Styles */
+.strength-meter {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.strength-meter .progress {
+    background-color: var(--bg-primary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.strength-meter .progress-bar {
+    transition: width 0.5s ease, background-color 0.3s ease;
+    border-radius: 4px;
+}
+
+.character-sets .badge {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.character-sets .badge.bg-success {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+#passwordIssues ul li,
+#passwordSuggestions ul li {
+    padding: 0.25rem 0;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#passwordIssues ul li:hover,
+#passwordSuggestions ul li:hover {
+    background-color: var(--bg-primary);
+    padding-left: 0.5rem;
+}
+
+/* Password Container in Vault */
+.password-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.password-strength-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.password-strength-indicator .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.password-strength-indicator .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.strength-result {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.strength-result .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Responsive adjustments for password strength */
+@media (max-width: 768px) {
+    .strength-meter {
+        padding: 10px;
+    }
+    
+    .character-sets .badge {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .password-strength-indicator {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .strength-result {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Security Metrics on Dashboard */
+.security-metric {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.security-metric:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--card-shadow);
+}
+
+.security-metric h4 {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.metric-value .badge {
+    font-size: 1.5rem;
+    padding: 0.5rem 1rem;
+}

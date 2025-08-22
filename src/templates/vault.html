@@ -90,8 +90,20 @@
                                     <td>{{ credential.website }}</td>
                                     <td>{{ credential.username }}</td>
                                     <td>
-                                        <input type="password" value="{{ credential.password }}" class="password-field" readonly>
-                                        <button class="toggle-visibility" onclick="togglePassword(this)">👁</button>
+                                        <div class="password-container">
+                                            <input type="password" value="{{ credential.password }}" class="password-field" readonly>
+                                            <button class="toggle-visibility" onclick="togglePassword(this)">👁</button>
+                                        </div>
+                                        <!-- Password Strength Indicator -->
+                                        <div class="password-strength-indicator mt-1">
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="analyzeExistingPassword('{{ credential.password }}', this)">
+                                                🔍 Analyze Strength
+                                            </button>
+                                            <div class="strength-result" style="display: none;">
+                                                <span class="strength-badge badge"></span>
+                                                <span class="entropy-badge badge ms-1"></span>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td>
                                         <button class="btn btn-primary btn-sm" onclick="copyToClipboard('{{ credential.password }}')">📋 Copy</button>
@@ -297,6 +309,70 @@
                     }
                 });
             }
+        }
+        
+        // Analyze existing password strength
+        function analyzeExistingPassword(password, buttonElement) {
+            const strengthIndicator = buttonElement.parentElement.querySelector('.strength-result');
+            const strengthBadge = strengthIndicator.querySelector('.strength-badge');
+            const entropyBadge = strengthIndicator.querySelector('.entropy-badge');
+            
+            // Show loading state
+            buttonElement.textContent = '⏳ Analyzing...';
+            buttonElement.disabled = true;
+            
+            fetch('/analyze_password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ password: password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Analysis error:', data.error);
+                    return;
+                }
+                
+                // Update strength badge
+                strengthBadge.textContent = data.strength_level;
+                strengthBadge.className = `badge bg-${getStrengthColor(data.strength_level)}`;
+                
+                // Update entropy badge
+                entropyBadge.textContent = `${data.entropy} bits`;
+                entropyBadge.className = `badge bg-${getEntropyColor(data.entropy)}`;
+                
+                // Show results
+                strengthIndicator.style.display = 'inline-block';
+                
+                // Reset button
+                buttonElement.textContent = '🔍 Analyze Strength';
+                buttonElement.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error analyzing password:', error);
+                buttonElement.textContent = '🔍 Analyze Strength';
+                buttonElement.disabled = false;
+            });
+        }
+        
+        function getStrengthColor(strengthLevel) {
+            const colorMap = {
+                'Very Strong': 'success',
+                'Strong': 'info',
+                'Moderate': 'warning',
+                'Weak': 'danger',
+                'Very Weak': 'danger'
+            };
+            return colorMap[strengthLevel] || 'secondary';
+        }
+        
+        function getEntropyColor(entropy) {
+            if (entropy >= 64) return 'success';
+            if (entropy >= 48) return 'info';
+            if (entropy >= 32) return 'warning';
+            return 'danger';
         }
     </script>
 

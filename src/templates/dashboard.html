@@ -74,6 +74,38 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Password Security Overview -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-12">
+                <div class="dashboard-card p-4">
+                    <h3 class="text-center mb-4">🔐 Password Security Overview</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="security-metric text-center p-3">
+                                <h4>Total Passwords</h4>
+                                <div class="metric-value">{{ total_passwords }}</div>
+                                <small class="text-muted">Stored credentials</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="security-metric text-center p-3">
+                                <h4>Security Status</h4>
+                                <div class="metric-value">
+                                    <span class="badge bg-success">🔒 Secure</span>
+                                </div>
+                                <small class="text-muted">All passwords encrypted</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('vault') }}" class="btn btn-outline-primary">
+                            🔍 Analyze All Passwords
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer class="footer bg-dark text-white text-center py-3 mt-auto">
