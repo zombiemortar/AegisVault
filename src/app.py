@@ -5,11 +5,13 @@ import sqlite3
 from encryption import encrypt_data, decrypt_data  # ✅ Import encryption functions
 from session import session_expire_event, SessionManager  # ✅ Import session expiration event
 from database import init_db, store_master_account, load_master_account, store_password, get_total_stored_passwords, update_password, delete_password, export_database
+from password_strength import PasswordStrengthAnalyzer
 
 # 🔒 Flask app setup
 app = Flask(__name__)
 app.secret_key = "supersecurekey"  # ✅ Replace with a strong, secure key
 session_manager = SessionManager()  # 🔥 Create an instance
+password_analyzer = PasswordStrengthAnalyzer()  # 🔐 Password strength analyzer
 init_db()
 
 with open("../src/encryption_key.key", "rb") as f:
@@ -283,6 +285,56 @@ def import_backup():
         print(f"❌ General Error: {str(e)}")  # 🔎 Debugging output
 
     return redirect(url_for('settings'))
+
+@app.route('/analyze_password', methods=['POST'])
+def analyze_password():
+    """Analyzes password strength and returns analysis data."""
+    if "user_id" not in session:
+        return {"error": "Not authenticated"}, 401
+        
+    data = request.get_json()
+    password = data.get('password', '')
+    
+    analysis = password_analyzer.analyze_password(password)
+    return analysis
+
+@app.route('/password_stats', methods=['GET'])
+def get_password_stats():
+    """Gets password strength statistics for dashboard."""
+    if "user_id" not in session:
+        return {"error": "Not authenticated"}, 401
+        
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT password FROM credentials")
+        passwords = cursor.fetchall()
+        conn.close()
+        
+        if not passwords:
+            return {"total": 0, "strength_distribution": {}, "average_entropy": 0}
+        
+        # Analyze all passwords
+        strength_counts = {"Very Strong": 0, "Strong": 0, "Moderate": 0, "Weak": 0, "Very Weak": 0}
+        total_entropy = 0
+        
+        for row in passwords:
+            decrypted_password = decrypt_data(row[0])
+            analysis = password_analyzer.analyze_password(decrypted_password)
+            strength_counts[analysis['strength_level']] += 1
+            total_entropy += analysis['entropy']
+        
+        average_entropy = round(total_entropy / len(passwords), 2)
+        
+        return {
+            "total": len(passwords),
+            "strength_distribution": strength_counts,
+            "average_entropy": average_entropy
+        }
+        
+    except Exception as e:
+        print(f"Error getting password stats: {e}")
+        return {"error": "Failed to get password statistics"}, 500
 
 if __name__ == "__main__":
     app.run(debug=True)
