@@ -445,6 +445,17 @@ input {
     box-shadow: 0 0 15px var(--card-shadow);
 }
 
+.dashboard-overview h2,
+.dashboard-overview p {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.dashboard-overview strong {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
 .dashboard-card {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
@@ -468,6 +479,8 @@ input {
 .dashboard-card h3 {
     margin-bottom: 1rem;
     font-size: 1.5rem;
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 .dashboard-card .btn {
@@ -923,9 +936,10 @@ select {
 }
 
 .security-metric h4 {
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-size: 1rem;
     margin-bottom: 1rem;
+    font-weight: 600;
 }
 
 .metric-value {
@@ -935,7 +949,775 @@ select {
     margin-bottom: 0.5rem;
 }
 
+.security-metric small {
+    color: var(--text-primary);
+    opacity: 0.8;
+    font-weight: 500;
+}
+
 .metric-value .badge {
     font-size: 1.5rem;
     padding: 0.5rem 1rem;
+}
+
+/* Auto-lock notification styles */
+.auto-lock-notification {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    color: white;
+    font-family: Arial, sans-serif;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.auto-lock-notification .notification-content {
+    text-align: center;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.auto-lock-notification h3 {
+    color: #ff6b6b;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.auto-lock-notification p {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Session status styles */
+.security-metric .metric-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+/* Ensure session status text is visible */
+.security-metric .text-muted {
+    color: var(--text-primary) !important;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+.security-metric .badge {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+}
+
+/* Auto-lock settings form styles */
+.settings-section {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.settings-section h3 {
+    color: #0078D7;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #0078D7;
+    padding-bottom: 0.5rem;
+}
+
+.form-check {
+    margin-bottom: 0.5rem;
+}
+
+/* Ensure checkboxes are visible in both themes */
+.form-check-input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+}
+
+.form-check-input:checked {
+    background-color: #0078D7 !important;
+    border-color: #0078D7 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e") !important;
+}
+
+.form-check-label {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Additional checkbox styling for better visibility */
+.form-check-input:focus {
+    border-color: #0078D7;
+    box-shadow: 0 0 0 0.2rem rgba(0, 120, 215, 0.25);
+}
+
+.form-check-input:not(:checked) {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+}
+
+.form-control:focus {
+    border-color: #0078D7;
+    box-shadow: 0 0 0 0.2rem rgba(0, 120, 215, 0.25);
+}
+
+/* Bulk Operations Styles */
+.bulk-operations-container {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px var(--card-shadow);
+    transition: all 0.3s ease;
+}
+
+.bulk-operations-container:hover {
+    border-color: #0078D7;
+    box-shadow: 0 4px 12px var(--card-shadow);
+}
+
+.bulk-selection-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bulk-selection-info .badge {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    animation: pulse 2s infinite;
+}
+
+.bulk-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.bulk-actions .btn {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+}
+
+.bulk-actions .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.bulk-actions .btn-outline-primary:hover {
+    background-color: #0078D7;
+    border-color: #0078D7;
+    color: white;
+}
+
+.bulk-actions .btn-outline-warning:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.bulk-actions .btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.bulk-actions .btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+/* Table checkbox styling */
+.table .form-check {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table .form-check-input {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.table .form-check-input:hover {
+    transform: scale(1.1);
+}
+
+.table .form-check-label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Modal styling for bulk operations */
+.modal-content {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.modal-header {
+    background-color: var(--bg-navbar);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 10px 10px 0 0;
+}
+
+.modal-header .modal-title {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.modal-header .btn-close {
+    filter: invert(1);
+}
+
+.modal-body {
+    color: var(--text-primary);
+    padding: 1.5rem;
+}
+
+.modal-body .form-label {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.modal-body .form-select,
+.modal-body .form-control {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-primary);
+}
+
+.modal-body .form-select:focus,
+.modal-body .form-control:focus {
+    border-color: #0078D7;
+    box-shadow: 0 0 0 0.2rem rgba(0, 120, 215, 0.25);
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+}
+
+.modal-body .form-range {
+    background-color: var(--bg-primary);
+}
+
+.modal-body .form-range::-webkit-slider-thumb {
+    background: linear-gradient(to right, #0078D7, #00BFFF);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.modal-body .form-range::-moz-range-thumb {
+    background: linear-gradient(to right, #0078D7, #00BFFF);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.modal-footer {
+    background-color: var(--bg-navbar);
+    border-top: 1px solid var(--border-color);
+    border-radius: 0 0 10px 10px;
+}
+
+.modal-footer .btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.modal-footer .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive design for bulk operations */
+@media (max-width: 768px) {
+    .bulk-operations-container {
+        padding: 10px;
+    }
+    
+    .bulk-actions {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .bulk-actions .btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .bulk-selection-info {
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .table .form-check-input {
+        width: 1rem;
+        height: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .bulk-operations-container .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .bulk-actions {
+        justify-content: center;
+    }
+    
+    .table thead th,
+    .table tbody td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Animation for bulk operations bar appearance */
+.bulk-operations-container {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Row selection highlighting */
+.credential-row .form-check-input:checked + td {
+    background-color: rgba(0, 120, 215, 0.1) !important;
+}
+
+.credential-row .form-check-input:checked ~ td {
+    background-color: rgba(0, 120, 215, 0.05) !important;
+}
+
+/* Loading states for bulk operations */
+.bulk-actions .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.bulk-actions .btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.bulk-actions .btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Dashboard Widget Styles */
+.activity-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.activity-item:hover {
+    background-color: var(--bg-primary);
+    transform: translateX(5px);
+}
+
+.activity-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    text-align: center;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.activity-details {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.tips-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.tip-item {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    background-color: var(--bg-primary);
+    margin-bottom: 1rem;
+}
+
+.tip-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--card-shadow);
+}
+
+.tip-item h5 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.tip-item p {
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Enhanced responsive design for dashboard */
+@media (max-width: 768px) {
+    .dashboard-card {
+        margin-bottom: 1rem;
+        padding: 1rem;
+    }
+    
+    .dashboard-card h3 {
+        font-size: 1.25rem;
+    }
+    
+    .security-metric {
+        margin-bottom: 1rem;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+    }
+    
+    .activity-item {
+        padding: 0.75rem !important;
+    }
+    
+    .activity-icon {
+        font-size: 1.25rem;
+        width: 30px;
+    }
+    
+    .tip-item {
+        padding: 0.75rem !important;
+    }
+    
+    .tip-item h5 {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .dashboard-card {
+        padding: 0.75rem;
+    }
+    
+    .security-metric {
+        padding: 0.75rem !important;
+    }
+    
+    .metric-value {
+        font-size: 1.25rem;
+    }
+    
+    .activity-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .activity-icon {
+        width: auto;
+        margin: 0 auto;
+    }
+}
+
+/* Widget visibility transitions */
+[id^="widget-"] {
+    transition: all 0.3s ease;
+}
+
+[id^="widget-"]:not([style*="display: none"]) {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced theme-aware styling */
+[data-theme="light"] .tip-item {
+    background-color: #f8f9fa;
+    border-left-color: #0078D7;
+}
+
+[data-theme="light"] .activity-item:hover {
+    background-color: #e9ecef;
+}
+
+[data-theme="light"] .security-metric {
+    background-color: #ffffff;
+    border-color: #dee2e6;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus indicators for better accessibility */
+.btn:focus,
+.form-check-input:focus,
+.form-control:focus {
+    outline: 2px solid #0078D7;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .dashboard-card {
+        border: 2px solid var(--text-primary);
+    }
+    
+    .security-metric {
+        border: 2px solid var(--text-primary);
+    }
+    
+    .activity-item {
+        border: 1px solid var(--text-primary);
+    }
+}
+
+/* Password Generator Modal Styles */
+.modal-content {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-header {
+    background-color: var(--bg-navbar) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-header .modal-title {
+    color: var(--text-primary) !important;
+    font-weight: 600;
+}
+
+.modal-header .btn-close {
+    filter: invert(1);
+    background-color: transparent;
+}
+
+.modal-body {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-body .form-label {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.modal-body .form-control,
+.modal-body .form-select {
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--input-border) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-body .form-control:focus,
+.modal-body .form-select:focus {
+    border-color: #0078D7 !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 120, 215, 0.25) !important;
+    background-color: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-body .form-range {
+    background-color: var(--bg-primary);
+}
+
+.modal-body .form-range::-webkit-slider-thumb {
+    background: linear-gradient(to right, #0078D7, #00BFFF);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.modal-body .form-range::-moz-range-thumb {
+    background: linear-gradient(to right, #0078D7, #00BFFF);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.modal-body .form-check-input {
+    background-color: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+}
+
+.modal-body .form-check-input:checked {
+    background-color: #0078D7 !important;
+    border-color: #0078D7 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e") !important;
+}
+
+.modal-body .form-check-label {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+}
+
+.modal-body .btn-group .btn {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--input-border) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-body .btn-group .btn:hover {
+    background-color: var(--input-border) !important;
+    border-color: var(--input-border) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-body .btn-group .btn-check:checked + .btn {
+    background-color: #0078D7 !important;
+    border-color: #0078D7 !important;
+    color: #ffffff !important;
+}
+
+.modal-body .badge {
+    background-color: #0078D7 !important;
+    color: #ffffff !important;
+}
+
+.modal-body .alert {
+    background-color: var(--bg-primary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-body .alert-info {
+    background-color: rgba(0, 120, 215, 0.1) !important;
+    border-color: #0078D7 !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-footer {
+    background-color: var(--bg-navbar) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+.modal-footer .btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.modal-footer .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure input group styling in modal */
+.modal-body .input-group .form-control {
+    background-color: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-body .input-group .btn {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--input-border) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-body .input-group .btn:hover {
+    background-color: var(--input-border) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Generator options visibility */
+.generator-options {
+    color: var(--text-primary) !important;
+}
+
+/* Ensure all text elements in modal are visible */
+.modal-content * {
+    color: var(--text-primary) !important;
+}
+
+/* Override Bootstrap's default modal colors */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5) !important;
 }

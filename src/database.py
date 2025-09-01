@@ -24,8 +24,44 @@ def init_db():
             password TEXT NOT NULL
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_preferences (
+            username TEXT PRIMARY KEY,
+            session_timeout INTEGER DEFAULT 300,
+            lock_on_tab_inactive BOOLEAN DEFAULT 1,
+            lock_on_suspicious_activity BOOLEAN DEFAULT 1,
+            auto_lock_enabled BOOLEAN DEFAULT 1,
+            lock_on_window_blur BOOLEAN DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Run migrations to add new columns to existing tables
+    run_migrations(cursor)
+    
     conn.commit()
     conn.close()
+
+def run_migrations(cursor):
+    """Run database migrations to update schema."""
+    try:
+        # Check if lock_on_window_blur column exists
+        cursor.execute("PRAGMA table_info(user_preferences)")
+        columns = [column[1] for column in cursor.fetchall()]
+        
+        # Add lock_on_window_blur column if it doesn't exist
+        if 'lock_on_window_blur' not in columns:
+            print("🔧 Adding lock_on_window_blur column to user_preferences table...")
+            cursor.execute("""
+                ALTER TABLE user_preferences 
+                ADD COLUMN lock_on_window_blur BOOLEAN DEFAULT 1
+            """)
+            print("✅ Migration completed: lock_on_window_blur column added")
+        
+    except sqlite3.Error as e:
+        print(f"⚠️ Migration error: {e}")
+        # Continue execution even if migration fails
 
 def get_connection():
     """Establishes connection to the database."""
@@ -115,6 +151,96 @@ def delete_password(website):
 
     conn.close()
 
+def get_user_preferences(username):
+    """Get user preferences for auto-lock and other settings."""
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    
+    # Check if preferences exist for this user
+    cursor.execute("SELECT * FROM user_preferences WHERE username = ?", (username,))
+    preferences = cursor.fetchone()
+    
+    if not preferences:
+        # Initialize default preferences
+        cursor.execute("""
+            INSERT INTO user_preferences (username, session_timeout, lock_on_tab_inactive, 
+                                        lock_on_suspicious_activity, auto_lock_enabled, lock_on_window_blur)
+            VALUES (?, 300, 1, 1, 1, 1)
+        """, (username,))
+        conn.commit()
+        
+        # Fetch the newly created preferences
+        cursor.execute("SELECT * FROM user_preferences WHERE username = ?", (username,))
+        preferences = cursor.fetchone()
+    
+    conn.close()
+    
+    if preferences:
+        # Handle different column counts (for backward compatibility)
+        if len(preferences) >= 8:  # New schema with lock_on_window_blur
+            return {
+                'username': preferences[0],
+                'session_timeout': preferences[1],
+                'lock_on_tab_inactive': bool(preferences[2]),
+                'lock_on_suspicious_activity': bool(preferences[3]),
+                'auto_lock_enabled': bool(preferences[4]),
+                'lock_on_window_blur': bool(preferences[5]),
+                'created_at': preferences[6],
+                'updated_at': preferences[7]
+            }
+        else:  # Old schema without lock_on_window_blur
+            return {
+                'username': preferences[0],
+                'session_timeout': preferences[1],
+                'lock_on_tab_inactive': bool(preferences[2]),
+                'lock_on_suspicious_activity': bool(preferences[3]),
+                'auto_lock_enabled': bool(preferences[4]),
+                'lock_on_window_blur': True,  # Default to True for backward compatibility
+                'created_at': preferences[5] if len(preferences) > 5 else None,
+                'updated_at': preferences[6] if len(preferences) > 6 else None
+            }
+    return None
+
+def update_user_preferences(username, **kwargs):
+    """Update user preferences."""
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    
+    # Build update query dynamically
+    update_fields = []
+    values = []
+    
+    for field, value in kwargs.items():
+        if field in ['session_timeout', 'lock_on_tab_inactive', 'lock_on_suspicious_activity', 'auto_lock_enabled', 'lock_on_window_blur']:
+            update_fields.append(f"{field} = ?")
+            values.append(value)
+    
+    if update_fields:
+        update_fields.append("updated_at = CURRENT_TIMESTAMP")
+        query = f"UPDATE user_preferences SET {', '.join(update_fields)} WHERE username = ?"
+        values.append(username)
+        
+        cursor.execute(query, values)
+        conn.commit()
+    
+    conn.close()
+
+def initialize_user_preferences(username):
+    """Initialize default preferences for a new user."""
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    
+    # Run migrations first to ensure table structure is up to date
+    run_migrations(cursor)
+    
+    cursor.execute("""
+        INSERT OR IGNORE INTO user_preferences (username, session_timeout, lock_on_tab_inactive, 
+                                              lock_on_suspicious_activity, auto_lock_enabled, lock_on_window_blur)
+        VALUES (?, 300, 1, 1, 1, 1)
+    """, (username,))
+    
+    conn.commit()
+    conn.close()
 
 def update_password(website, new_password):
     """Updates stored password for a given website."""

@@ -1,7 +1,9 @@
 import threading
 import time
+from database import get_user_preferences
 
-SESSION_TIMEOUT = 300  # 30-second timeout
+# Default timeout if no user preferences are found
+DEFAULT_SESSION_TIMEOUT = 300
 session_expire_event = threading.Event()
 
 class SessionManager:
@@ -9,17 +11,25 @@ class SessionManager:
         self.active = False
         self.username = None
         self.start_time = None
+        self.timeout = DEFAULT_SESSION_TIMEOUT
+        self.preferences = None
 
     def start_session(self, username):
         """Starts a session and monitors expiration."""
         self.active = True
         self.username = username
         self.start_time = time.time()
+        
+        # Load user preferences
+        self.preferences = get_user_preferences(username)
+        if self.preferences:
+            self.timeout = self.preferences.get('session_timeout', DEFAULT_SESSION_TIMEOUT)
+        
         threading.Thread(target=self.monitor_session, daemon=True).start()  # ✅ Run in background
 
     def validate_session(self):
         """Checks if the session is still active."""
-        if not self.active or (time.time() - self.start_time) >= SESSION_TIMEOUT:
+        if not self.active or (time.time() - self.start_time) >= self.timeout:
             self.expire_session()
             return False
         return True
@@ -47,3 +57,17 @@ class SessionManager:
 
             if not self.validate_session():
                 break
+
+    def update_timeout(self, new_timeout):
+        """Update session timeout dynamically."""
+        self.timeout = new_timeout
+        if self.preferences:
+            self.preferences['session_timeout'] = new_timeout
+
+    def get_remaining_time(self):
+        """Get remaining session time in seconds."""
+        if not self.active:
+            return 0
+        elapsed = time.time() - self.start_time
+        remaining = max(0, self.timeout - elapsed)
+        return int(remaining)

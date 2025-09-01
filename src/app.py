@@ -4,19 +4,20 @@ from flask import Flask, render_template, request, redirect, session, url_for, f
 import sqlite3
 from encryption import encrypt_data, decrypt_data  # ✅ Import encryption functions
 from session import session_expire_event, SessionManager  # ✅ Import session expiration event
-from database import init_db, store_master_account, load_master_account, store_password, get_total_stored_passwords, update_password, delete_password, export_database
+from database import init_db, store_master_account, load_master_account, store_password, get_total_stored_passwords, update_password, delete_password, export_database, get_user_preferences, update_user_preferences, initialize_user_preferences
 from password_strength import PasswordStrengthAnalyzer
+from password_generator import PasswordGenerator
 
 # 🔒 Flask app setup
 app = Flask(__name__)
 app.secret_key = "supersecurekey"  # ✅ Replace with a strong, secure key
 session_manager = SessionManager()  # 🔥 Create an instance
 password_analyzer = PasswordStrengthAnalyzer()  # 🔐 Password strength analyzer
+password_generator = PasswordGenerator()  # 🔐 Password generator
 init_db()
 
-with open("../src/encryption_key.key", "rb") as f:
-    key = f.read()
-    print(f"🔎 Encryption Key: {key}")
+# Encryption key is handled by encryption.py module
+# No need to manually load it here
 
 
 def get_db_connection():
@@ -55,6 +56,9 @@ def login():
                 session["user_id"] = username
                 session.permanent = True
 
+                # Initialize user preferences if they don't exist
+                initialize_user_preferences(username)
+                
                 session_manager.start_session(username)  # 🔥 Starts tracking session expiration
                 return redirect("/dashboard")  # ✅ Redirect on success
 
@@ -84,6 +88,68 @@ def dashboard():
 def logout():
     session.clear()  # 🔒 Clears user session
     return redirect("/")  # ✅ Redirects back to login page
+
+# API endpoints for auto-lock features
+@app.route("/api/preferences", methods=["GET"])
+def get_preferences():
+    """Get user preferences for auto-lock settings."""
+    if "user_id" not in session:
+        return {"error": "Not authenticated"}, 401
+    
+    username = session["user_id"]
+    preferences = get_user_preferences(username)
+    
+    if preferences:
+        return preferences
+    else:
+        return {"error": "Preferences not found"}, 404
+
+@app.route("/api/preferences", methods=["POST"])
+def update_preferences():
+    """Update user preferences for auto-lock settings."""
+    if "user_id" not in session:
+        return {"error": "Not authenticated"}, 401
+    
+    username = session["user_id"]
+    data = request.get_json()
+    
+    if not data:
+        return {"error": "No data provided"}, 400
+    
+    try:
+        update_user_preferences(username, **data)
+        
+        # Update session manager timeout if session_timeout changed
+        if 'session_timeout' in data:
+            session_manager.update_timeout(data['session_timeout'])
+        
+        return {"message": "Preferences updated successfully"}
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+@app.route("/api/session/status", methods=["GET"])
+def session_status():
+    """Get current session status."""
+    if "user_id" not in session:
+        return {"active": False, "remaining_time": 0}
+    
+    username = session["user_id"]
+    remaining_time = session_manager.get_remaining_time()
+    
+    return {
+        "active": session_manager.active,
+        "remaining_time": remaining_time,
+        "username": username
+    }
+
+@app.route("/api/session/refresh", methods=["POST"])
+def refresh_session():
+    """Refresh the current session."""
+    if "user_id" not in session:
+        return {"error": "Not authenticated"}, 401
+    
+    session_manager.refresh_session()
+    return {"message": "Session refreshed successfully"}
 
 @app.route("/create_account", methods=["GET", "POST"])
 def create_account():
@@ -335,6 +401,99 @@ def get_password_stats():
     except Exception as e:
         print(f"Error getting password stats: {e}")
         return {"error": "Failed to get password statistics"}, 500
+
+@app.route('/generate_password', methods=['POST'])
+def generate_password():
+    """Generates a secure password based on user preferences."""
+    if "user_id" not in session:
+        return {"error": "Not authenticated"}, 401
+        
+    try:
+        data = request.get_json()
+        
+        # Get generation options from request
+        length = data.get('length', 16)
+        include_lowercase = data.get('include_lowercase', True)
+        include_uppercase = data.get('include_uppercase', True)
+        include_digits = data.get('include_digits', True)
+        include_symbols = data.get('include_symbols', True)
+        avoid_similar = data.get('avoid_similar', True)
+        avoid_ambiguous = data.get('avoid_ambiguous', True)
+        generator_type = data.get('type', 'random')  # 'random', 'memorable', 'pronounceable'
+        
+        # Validate options
+        options = {
+            'length': length,
+            'include_lowercase': include_lowercase,
+            'include_uppercase': include_uppercase,
+            'include_digits': include_digits,
+            'include_symbols': include_symbols,
+            'avoid_similar': avoid_similar,
+            'avoid_ambiguous': avoid_ambiguous
+        }
+        
+        validation_errors = password_generator.validate_options(options)
+        if validation_errors:
+            return {"error": validation_errors[0]}, 400
+        
+        # Generate password based on type
+        if generator_type == 'memorable':
+            word_count = data.get('word_count', 4)
+            separator = data.get('separator', '-')
+            include_numbers = data.get('include_numbers', True)
+            include_symbols = data.get('include_symbols', True)
+            password = password_generator.generate_memorable_password(
+                word_count=word_count,
+                separator=separator,
+                include_numbers=include_numbers,
+                include_symbols=include_symbols
+            )
+        elif generator_type == 'pronounceable':
+            include_numbers = data.get('include_numbers', True)
+            include_symbols = data.get('include_symbols', True)
+            password = password_generator.generate_pronounceable_password(
+                length=length,
+                include_numbers=include_numbers,
+                include_symbols=include_symbols
+            )
+        else:  # random
+            password = password_generator.generate_password(
+                length=length,
+                include_lowercase=include_lowercase,
+                include_uppercase=include_uppercase,
+                include_digits=include_digits,
+                include_symbols=include_symbols,
+                avoid_similar=avoid_similar,
+                avoid_ambiguous=avoid_ambiguous
+            )
+        
+        # Get strength information for the generated password
+        strength_info = password_generator.get_password_strength_info(password)
+        
+        return {
+            "password": password,
+            "strength_info": strength_info,
+            "options": options
+        }
+        
+    except ValueError as e:
+        return {"error": str(e)}, 400
+    except Exception as e:
+        print(f"Error generating password: {e}")
+        return {"error": "Failed to generate password"}, 500
+
+@app.route('/get_generator_options', methods=['GET'])
+def get_generator_options():
+    """Gets default generator options."""
+    if "user_id" not in session:
+        return {"error": "Not authenticated"}, 401
+        
+    try:
+        options = password_generator.get_generator_options()
+        return options
+    except Exception as e:
+        print(f"Error getting generator options: {e}")
+        return {"error": "Failed to get generator options"}, 500
 
 if __name__ == "__main__":
     app.run(debug=True)
