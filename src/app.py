@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, session, url_for, f
 import sqlite3
 from encryption import encrypt_data, decrypt_data  # ✅ Import encryption functions
 from session import session_expire_event, SessionManager  # ✅ Import session expiration event
-from database import init_db, store_master_account, load_master_account, store_password, get_total_stored_passwords, update_password, delete_password, export_database, get_user_preferences, update_user_preferences, initialize_user_preferences
+from database import init_db, store_master_account, load_master_account, store_password, get_total_stored_passwords, update_password, delete_password, export_database, get_user_preferences, update_user_preferences, initialize_user_preferences, get_connection
 from password_strength import PasswordStrengthAnalyzer
 from password_generator import PasswordGenerator
 
@@ -21,13 +21,13 @@ init_db()
 
 
 def get_db_connection():
-    conn = sqlite3.connect("../data/passwords.db")  # ✅ Correct database path
+    conn = get_connection()
     conn.row_factory = sqlite3.Row
     return conn
 
 def user_exists(username):
     """ Check if the username already exists in the database. """
-    conn = sqlite3.connect("../data/passwords.db")
+    conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT username FROM users WHERE username = ?", (username,))
     exists = cursor.fetchone() is not None
@@ -164,7 +164,7 @@ def create_account():
             return redirect(url_for("create_account"))
 
         # ✅ Check if username already exists
-        conn = sqlite3.connect("../data/passwords.db")  # 🔒 Correct database path
+        conn = get_db_connection()  # 🔒 Correct database path
         cursor = conn.cursor()
         cursor.execute("SELECT username FROM master_account WHERE username = ?", (username,))
         exists = cursor.fetchone() is not None
@@ -196,10 +196,10 @@ def create_account():
 @app.route("/vault")
 def vault():
     """Fetch stored credentials and decrypt passwords before displaying."""
-    conn = sqlite3.connect("../data/passwords.db")
+    conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT website, username, password FROM credentials")
+    cursor.execute("SELECT website, username, password FROM credentials WHERE deleted_at IS NULL")
     credentials = [
         {
             "website": row[0],
@@ -373,7 +373,7 @@ def get_password_stats():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT password FROM credentials")
+        cursor.execute("SELECT password FROM credentials WHERE deleted_at IS NULL")
         passwords = cursor.fetchall()
         conn.close()
         

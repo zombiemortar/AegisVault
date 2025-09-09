@@ -1,421 +1,275 @@
 # AegisVault - Implemented Features Documentation
 
-This document provides comprehensive details of all features that have been successfully implemented in the AegisVault password manager, organized by implementation order and complexity.
+This document lists all implemented features in the AegisVault password manager, organized by area (Database, Authentication & Session, Password Management, UI/UX, etc.). Duplicate entries have been removed and content consolidated.
 
-## 🟢 EASY IMPLEMENTATIONS (COMPLETED)
+## Database
 
-### 1. Password Strength Analysis ✅ DONE
-
-**Overview**: Implemented comprehensive password strength analysis with visual indicators and entropy calculation.
+**Overview**: Timestamps, soft deletes, indexing, idempotent migrations, and a standardized database path improve reliability and performance.
 
 **Features Implemented**:
-- Password strength meter with visual progress bar
-- Real-time strength level assessment (Very Weak to Very Strong)
-- Entropy calculation in bits for password complexity
-- Character set analysis (lowercase, uppercase, digits, symbols)
-- Password issues identification and suggestions
-- Strength-based color coding (red for weak, green for strong)
-- Integration with password generator for strength feedback
+- `credentials` includes `created_at`, `updated_at`, and `deleted_at`
+- Soft delete strategy via `deleted_at`
+- Indexes on `website`, `deleted_at`, and an active partial index
+- Idempotent migrations in `run_migrations()`
+- Unified `DATABASE_FILE` path across the app
 
 **Technical Implementation**:
-- `PasswordStrengthAnalyzer` class in `password_strength.py`
-- Real-time analysis via `/analyze_password` API endpoint
-- Client-side strength calculation for immediate feedback
-- Entropy calculation using Shannon's formula
-- Visual indicators with Bootstrap progress bars and badges
+- Schema alterations to add timestamp and soft-delete columns
+- Migrations add columns and indexes if missing
+- `store_password()` uses UPSERT; resets `deleted_at` and updates `updated_at`
+- `update_password()` updates `password` and `updated_at`
+- `delete_password()` sets `deleted_at`
+- Read queries filter `deleted_at IS NULL`
+- `get_connection()` centralizes DB access
 
 **Files Modified**:
-- `src/password_strength.py` - Core analysis logic
-- `src/app.py` - API endpoint for analysis
-- `src/templates/add_password.html` - Integration with add password form
-- `src/templates/vault.html` - Analysis for existing passwords
-- `src/static/style.css` - Strength meter styling
+- `src/database.py` - Schema, migrations, CRUD updates, connection path
+- `src/app.py` - Queries updated to exclude soft-deleted rows
 
-### 2. Password Generator ✅ DONE
+**Database Schema**:
+- Existing tables: `master_account` (auth), `credentials` (secrets), `users` (management)
+- New table: `user_preferences` (auto-lock and user preferences)
 
-**Overview**: Built-in secure password generator with customizable options and multiple generation types.
+## Authentication & Session
 
-**Features Implemented**:
-- Random password generation with configurable length (8-64 characters)
-- Character set selection (lowercase, uppercase, digits, symbols)
-- Similar character avoidance (0/O, 1/l, etc.)
-- Ambiguous character filtering
-- Memorable password generation using word lists
-- Pronounceable password generation
-- Password strength information for generated passwords
-- Auto-fill functionality in add password form
-- Generator preferences persistence
+### Auto-Lock Features
 
-**Technical Implementation**:
-- `PasswordGenerator` class in `password_generator.py`
-- Multiple generation algorithms (random, memorable, pronounceable)
-- `/generate_password` API endpoint
-- `/get_generator_options` API endpoint
-- Client-side generation with server-side validation
-- LocalStorage for user preferences
-
-**Files Modified**:
-- `src/password_generator.py` - Core generation logic
-- `src/app.py` - Generator API endpoints
-- `src/templates/add_password.html` - Generator interface
-- `src/static/style.css` - Generator UI styling
-
-### 3. Auto-Lock Features ✅ DONE
-
-**Overview**: Comprehensive session management with configurable timeouts, inactivity detection, and suspicious activity monitoring.
+**Overview**: Session management with configurable timeouts, inactivity detection, and suspicious activity monitoring.
 
 **Features Implemented**:
 - Configurable session timeouts (60-3600 seconds)
-- Browser tab inactivity detection
-- Window blur detection (separate control)
+- Browser tab inactivity and window blur detection
 - Suspicious activity detection (rapid clicking, typing, form submissions)
 - Per-user auto-lock preferences
-- Real-time session status monitoring
-- Manual session refresh capability
+- Real-time session status and manual refresh
 - Visual session status indicators
 
 **Technical Implementation**:
-- `SessionManager` class in `session.py`
-- `AutoLockManager` class in `auto_lock.js`
+- `SessionManager` in `session.py`
+- `AutoLockManager` in `static/auto_lock.js`
 - `user_preferences` database table
-- API endpoints for preference management
-- Real-time activity monitoring
-- Suspicious activity detection algorithms
-
-**Database Schema**:
-```sql
-CREATE TABLE user_preferences (
-    username TEXT PRIMARY KEY,
-    session_timeout INTEGER DEFAULT 300,
-    lock_on_tab_inactive BOOLEAN DEFAULT 1,
-    lock_on_suspicious_activity BOOLEAN DEFAULT 1,
-    auto_lock_enabled BOOLEAN DEFAULT 1,
-    lock_on_window_blur BOOLEAN DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+- Real-time activity monitoring and detection heuristics
 
 **Files Modified**:
-- `src/session.py` - Session management logic
-- `src/auto_lock.js` - Frontend auto-lock manager
+- `src/session.py` - Session management
+- `src/static/auto_lock.js` - Frontend auto-lock manager
 - `src/database.py` - User preferences functions
-- `src/app.py` - Auto-lock API endpoints
+- `src/app.py` - Preference/session integrations
 - `src/templates/settings.html` - Auto-lock configuration
-- `src/templates/dashboard.html` - Session status display
+- `src/templates/dashboard.html` - Session status
 - `src/static/style.css` - Auto-lock UI styling
 
-**API Endpoints**:
-- `GET /api/preferences` - Retrieve user preferences
-- `POST /api/preferences` - Update user preferences
-- `GET /api/session/status` - Get session status
-- `POST /api/session/refresh` - Refresh session
+## Password Management
 
-### 4. Basic Search Functionality ✅ DONE
+### Password Strength Analysis
 
-**Overview**: Real-time search functionality for credential lookup with advanced filtering and highlighting.
+**Overview**: Real-time strength analysis with entropy calculation and visual indicators.
 
 **Features Implemented**:
-- Real-time search as you type
-- Search by website, username, or any text
-- Search term highlighting
-- Search results count display
-- No results message
-- Clear search functionality
-- Keyboard shortcuts (Escape to clear, Ctrl+Enter to focus)
-- Debounced search for performance
-- Responsive search interface
+- Strength meter with progress bar and color coding
+- Real-time levels from Very Weak to Very Strong
+- Entropy calculation and character set analysis
+- Issue detection with suggestions
+- Integration with generator for feedback
 
 **Technical Implementation**:
-- Client-side JavaScript search implementation
-- Debounced search with 150ms delay
-- Regular expression-based highlighting
-- Search status indicators
-- Keyboard navigation support
+- `PasswordStrengthAnalyzer` in `password_strength.py`
+- Client-side calculation with server validation via API
+- Visual indicators using Bootstrap components
 
 **Files Modified**:
-- `src/templates/vault.html` - Search interface and functionality
-- `src/static/style.css` - Search styling and animations
+- `src/password_strength.py`
+- `src/app.py`
+- `src/templates/add_password.html`
+- `src/templates/vault.html`
+- `src/static/style.css`
 
-## 🟡 MODERATE IMPLEMENTATIONS (COMPLETED)
+### Password Generator
 
-### 6. Enhanced Interface Improvements ✅ DONE
-
-**Overview**: Comprehensive UI/UX improvements including bulk operations, enhanced theme system, customizable dashboard widgets, and improved responsive design.
-
-#### 6.1 Bulk Operations
+**Overview**: Secure password generator with multiple generation types and options.
 
 **Features Implemented**:
-- Checkbox selection for multiple credentials
-- Bulk operations bar with action buttons
-- Bulk export functionality (JSON download)
-- Bulk update with modal interface
-- Bulk delete with confirmation
-- Select all/clear selection functionality
-- Progress tracking for bulk operations
-- Row highlighting for selected items
+- Length (8–64), character set selection
+- Avoid similar/ambiguous characters
+- Memorable and pronounceable generation modes
+- Strength info and auto-fill to forms
+- Preference persistence
 
 **Technical Implementation**:
-- Checkbox-based selection system
-- Dynamic bulk operations bar
-- Modal for bulk update configuration
-- Client-side export functionality
-- API integration for bulk operations
+- `PasswordGenerator` in `password_generator.py`
+- Multiple algorithms (random, memorable, pronounceable)
+- Client-side generation with server-side validation
 
 **Files Modified**:
-- `src/templates/vault.html` - Bulk operations interface
-- `src/static/style.css` - Bulk operations styling
-- `src/app.py` - Bulk operations API endpoints
+- `src/password_generator.py`
+- `src/app.py`
+- `src/templates/add_password.html`
+- `src/static/style.css`
 
-#### 6.2 Enhanced Theme System
+## Search
+
+**Overview**: Real-time credential search with highlighting and keyboard shortcuts.
 
 **Features Implemented**:
-- System preference detection using `matchMedia`
-- Automatic theme switching based on system settings
-- "Follow System Theme" option
-- Enhanced theme persistence
-- Real-time theme change monitoring
-- Visual theme status indicators
-- Theme-aware styling throughout application
+- Search by website, username, or free text
+- Term highlighting and result counts
+- Clear/reset, Escape and Ctrl+Enter shortcuts
+- Debounced for performance; responsive UI
 
 **Technical Implementation**:
-- `ThemeManager` class in `theme.js`
-- System preference detection with `prefers-color-scheme`
-- LocalStorage for theme preferences
-- Custom events for theme changes
-- CSS custom properties for theme variables
+- Client-side JavaScript with 150ms debounce
+- Regex-based highlighting and status indicators
 
 **Files Modified**:
-- `src/static/theme.js` - Enhanced theme management
-- `src/templates/settings.html` - Theme configuration
-- `src/static/style.css` - Theme-aware styling
+- `src/templates/vault.html`
+- `src/static/style.css`
 
-#### 6.3 Customizable Dashboard Widgets
+## UI/UX
+
+### Bulk Operations
+
+**Overview**: Efficient multi-item operations in the vault.
 
 **Features Implemented**:
-- 6 customizable widgets:
-  - Account Overview
-  - Quick Actions
-  - Session Status
-  - Security Overview
-  - Password Statistics (real-time data)
-  - Recent Activity
-  - Security Tips
-- Widget configuration in settings
-- LocalStorage-based preferences
-- Smooth animations for widget visibility
-- Real-time data updates
+- Multi-select via checkboxes, select-all/clear
+- Bulk export (JSON), bulk update (modal), bulk delete (confirm)
+- Progress tracking and row highlighting
 
 **Technical Implementation**:
-- Widget ID-based visibility system
-- LocalStorage for widget preferences
-- Real-time data loading from API
-- Smooth CSS transitions
-- Responsive widget layouts
+- Checkbox selection system with dynamic action bar
+- Client-side export; API-backed updates/deletes
 
 **Files Modified**:
-- `src/templates/dashboard.html` - Widget implementation
-- `src/templates/settings.html` - Widget configuration
-- `src/static/style.css` - Widget styling
-- `src/app.py` - Widget data API endpoints
+- `src/templates/vault.html`
+- `src/static/style.css`
+- `src/app.py`
 
-#### 6.4 Improved Responsive Design
+### Improved Responsive Design
 
 **Features Implemented**:
-- Enhanced mobile responsiveness
-- Better breakpoints for different screen sizes
-- Touch-friendly interface elements
-- Adaptive layouts for mobile devices
-- Improved table responsiveness
-- Better spacing and typography
-- Accessibility improvements
+- Enhanced mobile responsiveness and breakpoints
+- Touch-friendly controls, adaptive layouts, responsive tables
+- Better spacing/typography and accessibility improvements
 
 **Technical Implementation**:
-- Mobile-first CSS approach
-- Bootstrap responsive utilities
-- Touch-friendly button sizes
-- Adaptive navigation
-- Responsive table layouts
+- Mobile-first CSS, Bootstrap utilities, adaptive navigation
 
 **Files Modified**:
-- `src/static/style.css` - Responsive design improvements
-- All template files - Responsive layout updates
+- `src/static/style.css`
+- Templates updated for responsive layouts
 
-#### 6.5 Accessibility Improvements
+## Theming
+
+**Overview**: Theme system with system preference detection and real-time switching.
 
 **Features Implemented**:
-- Focus indicators for keyboard navigation
-- Reduced motion support
-- High contrast mode support
-- Enhanced color contrast
-- Proper ARIA labels
-- Semantic HTML structure
+- Follow System Theme option with persistence
+- Real-time monitoring and theme-aware styling
 
 **Technical Implementation**:
-- CSS focus indicators
-- `prefers-reduced-motion` media query
-- `prefers-contrast` media query
-- ARIA attributes
-- Keyboard navigation support
+- `ThemeManager` in `static/theme.js`
+- `prefers-color-scheme`, custom events, CSS variables
 
 **Files Modified**:
-- `src/static/style.css` - Accessibility improvements
-- Template files - ARIA attributes and semantic HTML
+- `src/static/theme.js`
+- `src/templates/settings.html`
+- `src/static/style.css`
 
-## 🔧 Technical Architecture
+## Dashboard
 
-### Database Schema
+**Overview**: Customizable widgets and real-time data.
 
-**Existing Tables**:
-- `master_account` - User authentication
-- `credentials` - Password storage
-- `users` - User management
+**Features Implemented**:
+- Widgets: Account Overview, Quick Actions, Session Status, Security Overview, Password Statistics, Recent Activity, Security Tips
+- Widget visibility/preferences persisted; smooth animations
 
-**New Tables**:
-- `user_preferences` - Auto-lock and user preferences
+**Technical Implementation**:
+- Widget ID-based visibility and LocalStorage
+- Real-time data loading; responsive layouts
 
-### API Endpoints
+**Files Modified**:
+- `src/templates/dashboard.html`
+- `src/templates/settings.html`
+- `src/static/style.css`
+- `src/app.py`
 
-**Authentication Endpoints**:
+## Accessibility
+
+**Features Implemented**:
+- Keyboard focus indicators; reduced motion support
+- High contrast support; enhanced color contrast
+- Proper ARIA labels; semantic HTML
+
+**Technical Implementation**:
+- CSS focus styles, `prefers-reduced-motion`, `prefers-contrast`, ARIA
+
+**Files Modified**:
+- `src/static/style.css`
+- Template files (semantic/ARIA)
+
+## Backup & Export
+
+**Features Implemented**:
+- Database backup export and import
+- Bulk export from vault UI (JSON)
+
+**Files/Areas**:
+- `src/app.py` (routes)
+- `src/templates/vault.html` (bulk export UI)
+
+## API Endpoints
+
+### Authentication
 - `POST /` - Login
 - `POST /create_account` - Account creation
 - `GET /logout` - Logout
 
-**Password Management**:
+### Password Management
 - `GET /vault` - View credentials
 - `POST /add_password` - Add password
 - `POST /update_password` - Update password
 - `POST /delete_password` - Delete password
 
-**Analysis & Generation**:
+### Analysis & Generation
 - `POST /analyze_password` - Password strength analysis
 - `POST /generate_password` - Generate password
 - `GET /get_generator_options` - Get generator options
 - `GET /password_stats` - Get password statistics
 
-**Session & Preferences**:
+### Session & Preferences
 - `GET /api/preferences` - Get user preferences
 - `POST /api/preferences` - Update preferences
 - `GET /api/session/status` - Get session status
 - `POST /api/session/refresh` - Refresh session
 
-**Backup & Export**:
+### Backup & Export
 - `GET /export_backup` - Export database backup
 - `POST /import_backup` - Import backup
 
-### Frontend Architecture
+## Technical & Frontend Architecture (overview)
 
-**JavaScript Modules**:
-- `theme.js` - Theme management
-- `auto_lock.js` - Session management
-- Inline scripts in templates for specific functionality
+**JavaScript**: `static/theme.js`, `static/auto_lock.js`, inline scripts in templates
 
-**CSS Architecture**:
-- CSS custom properties for theming
-- Responsive design with Bootstrap
-- Component-based styling
-- Accessibility-focused design
+**CSS**: CSS variables for theming, Bootstrap responsive utilities, component-focused styling
 
-**Template Structure**:
-- Base template with navigation
-- Page-specific templates
-- Modal components
-- Responsive layouts
+**Templates**: Base layout with navigation, page-specific templates, modal components, responsive layouts
 
-## 🎯 User Experience Features
+## Development Notes
 
-### Security Features
-- Password strength analysis and feedback
-- Secure password generation
-- Auto-lock with suspicious activity detection
-- Encrypted data storage
-- Session management
+**Best Practices**:
+- Security-first design; API-first access to features
+- User-centric and accessible; progressive enhancement
+- Modular components; mobile-first responsive design
 
-### Usability Features
-- Real-time search functionality
-- Bulk operations for efficiency
-- Customizable dashboard
-- Responsive design for all devices
-- Accessibility support
+**Performance**:
+- Debounced client-side search, lazy loading for widgets
+- Efficient DOM updates and optimized CSS selectors
 
-### Personalization Features
-- Theme customization with system preference detection
-- Widget customization
-- User-specific preferences
-- Persistent settings
+## Conclusion
 
-## 📊 Implementation Statistics
-
-### Completed Features: 6/24 (25%)
-- Easy implementations: 4/4 (100%)
-- Moderate implementations: 2/10 (20%)
-- Intermediate implementations: 0/5 (0%)
-- Difficult implementations: 0/5 (0%)
-- Very difficult implementations: 0/5 (0%)
-
-### Code Metrics
-- **Files Modified**: 15+
-- **New Files Created**: 3
-- **API Endpoints**: 12+
-- **Database Tables**: 1 new
-- **JavaScript Classes**: 4
-- **CSS Rules**: 500+
-
-### Features by Category
-- **Security**: 4 features
-- **User Experience**: 6 features
-- **Interface**: 4 features
-- **Accessibility**: 3 features
-- **Performance**: 2 features
-
-## 🚀 Next Steps
-
-### Immediate Priorities
-1. **Database Enhancements** (#5) - Add timestamps and soft deletes
-2. **Advanced Search & Filtering** (#7) - Category system and server-side search
-3. **Import/Export Enhancements** (#8) - CSV support and validation
-
-### Medium-term Goals
-1. **Audit Logging** (#9) - Activity tracking and security analysis
-2. **Automated Backup System** (#10) - Scheduled backups and integrity checks
-3. **Security Dashboard** (#11) - Login monitoring and security scoring
-
-### Long-term Vision
-1. **Two-Factor Authentication** (#12) - TOTP and QR code generation
-2. **API Development Foundation** (#13) - RESTful API with authentication
-3. **Breach Monitoring** (#14) - HaveIBeenPwned integration
-
-## 📝 Development Notes
-
-### Best Practices Implemented
-- **Security First**: All features designed with security in mind
-- **User-Centric**: Focus on user experience and accessibility
-- **Modular Design**: Features are independent and reusable
-- **Progressive Enhancement**: Core functionality works without JavaScript
-- **Responsive Design**: Mobile-first approach
-- **Accessibility**: WCAG compliance considerations
-
-### Technical Decisions
-- **Client-side Search**: Chosen for performance and real-time feedback
-- **LocalStorage**: Used for user preferences to reduce server load
-- **CSS Custom Properties**: Used for theming to enable dynamic theme switching
-- **Bootstrap Integration**: Leveraged for responsive design and consistency
-- **API-First Design**: All features accessible via API endpoints
-
-### Performance Considerations
-- **Debounced Search**: Prevents excessive API calls
-- **Lazy Loading**: Widgets load data on demand
-- **Efficient DOM Updates**: Minimal re-rendering
-- **Optimized CSS**: Efficient selectors and minimal redundancy
-
-## 🎉 Conclusion
-
-The AegisVault password manager has successfully implemented 6 major feature sets, providing a solid foundation for a secure, user-friendly password management solution. The implementation demonstrates strong technical architecture, security best practices, and user experience design principles.
-
-All implemented features are production-ready, well-documented, and provide a comprehensive password management experience. The modular design allows for easy maintenance and future enhancements, making AegisVault a robust and scalable solution.
+AegisVault provides a secure, user-friendly password management experience with a solid technical foundation. Features are production-ready and structured for maintainability and future enhancements.
 
 ---
 
-*Documentation last updated: August 18, 2025*
+*Documentation last updated: September 9, 2025*
 *Project: AegisVault Password Manager*
-*Implementation Status: 6/24 features completed (25%)*
