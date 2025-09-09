@@ -32,91 +32,19 @@ This Software Bill of Materials (SBOM) provides a comprehensive inventory of all
 - **Source:** PyPI
 
 ### 1.3 Database Management
-- **Component:** SQLAlchemy
-- **Version:** 2.0.28
-- **Type:** Database ORM
-- **License:** MIT
-- **Purpose:** Object-relational mapping for database operations
-- **Source:** PyPI
+- **Component:** sqlite3
+- **Version:** Built-in (Python Standard Library)
+- **Type:** Database Interface
+- **License:** Python Software Foundation License
+- **Purpose:** SQLite database operations and management
+- **Source:** Python Standard Library
 
-- **Component:** Flask-SQLAlchemy
-- **Version:** 3.1.1
-- **Type:** Flask Extension
-- **License:** BSD-3-Clause
-- **Purpose:** SQLAlchemy integration for Flask
-- **Source:** PyPI
-
-### 1.4 Authentication & Security
-- **Component:** Flask-Login
-- **Version:** 0.6.3
-- **Type:** Authentication Extension
-- **License:** MIT
-- **Purpose:** User session management and authentication
-- **Source:** PyPI
-
-- **Component:** bcrypt
-- **Version:** 4.3.0
-- **Type:** Cryptographic Library
-- **License:** Apache-2.0
-- **Purpose:** Password hashing and secure authentication
-- **Source:** PyPI
-
+### 1.4 Cryptographic Security
 - **Component:** cryptography
 - **Version:** 45.0.2
 - **Type:** Cryptographic Library
 - **License:** Apache-2.0 / BSD-3-Clause
-- **Purpose:** Advanced cryptographic operations and encryption
-- **Source:** PyPI
-
-- **Component:** pycryptodome
-- **Version:** 3.22.0
-- **Type:** Cryptographic Library
-- **License:** Public Domain / BSD-2-Clause
-- **Purpose:** Additional cryptographic algorithms and secure random number generation
-- **Source:** PyPI
-
-- **Component:** pyotp
-- **Version:** 2.9.0
-- **Type:** OTP Library
-- **License:** MIT
-- **Purpose:** One-Time Password generation and validation
-- **Source:** PyPI
-
-### 1.5 System Dependencies
-- **Component:** cffi
-- **Version:** 1.17.1
-- **Type:** Foreign Function Interface
-- **License:** MIT
-- **Purpose:** C Foreign Function Interface for Python
-- **Source:** PyPI
-
-- **Component:** pycparser
-- **Version:** 2.22
-- **Type:** C Parser
-- **License:** BSD-3-Clause
-- **Purpose:** C parser for cffi
-- **Source:** PyPI
-
-### 1.6 GUI Framework (Optional)
-- **Component:** PyQt5
-- **Version:** 5.15.11
-- **Type:** GUI Framework
-- **License:** GPL-3.0 / Commercial
-- **Purpose:** Desktop GUI application interface (optional component)
-- **Source:** PyPI
-
-- **Component:** PyQt5-Qt5
-- **Version:** 5.15.2
-- **Type:** Qt5 Bindings
-- **License:** GPL-3.0 / Commercial
-- **Purpose:** Qt5 framework bindings for PyQt5
-- **Source:** PyPI
-
-- **Component:** PyQt5_sip
-- **Version:** 12.17.0
-- **Type:** SIP Bindings
-- **License:** GPL-3.0 / Commercial
-- **Purpose:** SIP bindings for PyQt5
+- **Purpose:** AES-256 encryption and secure data handling using Fernet
 - **Source:** PyPI
 
 ---
@@ -205,14 +133,12 @@ The following Python standard library modules are used throughout the applicatio
 ## 6. Security Considerations
 
 ### 6.1 Cryptographic Libraries
-- **cryptography** - Industry-standard cryptographic library
-- **pycryptodome** - Additional cryptographic algorithms
-- **bcrypt** - Secure password hashing
-- **secrets** - Cryptographically secure random number generation
+- **cryptography** - Industry-standard cryptographic library providing AES-256 encryption via Fernet
+- **secrets** - Cryptographically secure random number generation (Python standard library)
 
 ### 6.2 Data Protection
-- All sensitive data is encrypted using AES-256 encryption
-- Passwords are hashed using bcrypt with appropriate salt rounds
+- All sensitive data is encrypted using AES-256 encryption via Fernet
+- Master passwords are stored encrypted in the database
 - Session management includes automatic timeout and security features
 - Auto-lock functionality prevents unauthorized access
 
@@ -223,15 +149,9 @@ The following Python standard library modules are used throughout the applicatio
 | Component                | License                              | Type         |
 |--------------------------|--------------------------------------|--------------|
 | Flask                    | BSD-3-Clause                         | Open Source  |
-| SQLAlchemy               | MIT                                  | Open Source  |
-| Flask-SQLAlchemy         | BSD-3-Clause                         | Open Source  |
-| Flask-Login              | MIT                                  | Open Source  |
-| bcrypt                   | Apache-2.0                           | Open Source  |
 | cryptography             | Apache-2.0 / BSD-3-Clause            | Open Source  |
-| pycryptodome             | Public Domain / BSD-2-Clause         | Open Source  |
-| pyotp                    | MIT                                  | Open Source  |
+| sqlite3                  | Python Software Foundation License   | Open Source  |
 | Bootstrap                | MIT                                  | Open Source  |
-| PyQt5                    | GPL-3.0 / Commercial                 | Dual License |
 | Python                   | Python Software Foundation License   | Open Source  |
 
 ---
