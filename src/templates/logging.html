@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs - AegisVault</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+    <!-- CSS Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='auto_lock.js') }}"></script>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom CSS for table constraints -->
+    <style>
+        .audit-table-container {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .audit-table {
+            width: 100%;
+            table-layout: fixed;
+            margin-bottom: 0;
+            border-collapse: collapse;
+        }
+        
+        .audit-table th,
+        .audit-table td {
+            padding: 0.5rem;
+            vertical-align: middle;
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .audit-table th:last-child,
+        .audit-table td:last-child {
+            border-right: none;
+        }
+        
+        .audit-table th:nth-child(1) { width: 15%; }
+        .audit-table th:nth-child(2) { width: 12%; }
+        .audit-table th:nth-child(3) { width: 35%; }
+        .audit-table th:nth-child(4) { width: 10%; }
+        .audit-table th:nth-child(5) { width: 13%; }
+        .audit-table th:nth-child(6) { width: 15%; }
+        
+        /* Ensure proper spacing within the settings section */
+        .settings-section {
+            margin: 0;
+            padding: 1rem;
+        }
+        
+        .settings-section h3 {
+            margin-bottom: 1rem;
+        }
+        
+        /* Fix spacing for statistics overview */
+        .row.g-3 {
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+        }
+        
+        .row.g-3 > * {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .audit-table th:nth-child(1) { width: 20%; }
+            .audit-table th:nth-child(2) { width: 15%; }
+            .audit-table th:nth-child(3) { width: 30%; }
+            .audit-table th:nth-child(4) { width: 8%; }
+            .audit-table th:nth-child(5) { width: 12%; }
+            .audit-table th:nth-child(6) { width: 15%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{{ url_for('static', filename='aegisvault.jpg') }}" alt="AegisVault Logo" width="40" height="40" class="me-2 navbar-logo">
+                <span>AegisVault</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">🏠 Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('add_password') }}">🔑 Add Password</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('vault') }}">🔒 Vault</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('settings') }}">⚙️ Settings</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('audit_logs') }}">📋 Audit Logs</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">🚪 Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Audit Logs Page -->
+    <main class="container mt-4">
+        <section class="settings-container rounded p-4" style="max-width: 100%; overflow-x: hidden; margin: 0 auto;">
+            <h2>📋 Audit Logs & Security Monitoring</h2>
+            <p class="text-muted">Monitor all user activities and security events in your AegisVault account.</p>
+
+            <!-- Statistics Overview -->
+            <div class="row mb-4 g-3 px-3">
+                <div class="col-md-3">
+                    <div class="dashboard-card text-center">
+                        <h5 class="mb-3">📊 Total Events</h5>
+                        <h3 class="text-primary mb-2">{{ stats.total_events or 0 }}</h3>
+                        <small class="text-muted">Last {{ stats.period_days or 30 }} days</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card text-center">
+                        <h5 class="mb-3">✅ Successful</h5>
+                        <h3 class="text-success mb-2">{{ stats.success_stats.get(1, 0) }}</h3>
+                        <small class="text-muted">Completed actions</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card text-center">
+                        <h5 class="mb-3">❌ Failed</h5>
+                        <h3 class="text-danger mb-2">{{ stats.success_stats.get(0, 0) }}</h3>
+                        <small class="text-muted">Failed attempts</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card text-center">
+                        <h5 class="mb-3">🔐 Login Events</h5>
+                        <h3 class="text-warning mb-2">{{ stats.events_by_type.get('LOGIN', 0) + stats.events_by_type.get('LOGIN_FAILED', 0) }}</h3>
+                        <small class="text-muted">Authentication events</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="settings-section">
+                <h3>🔍 Filter & Search</h3>
+                <form method="GET" action="{{ url_for('audit_logs') }}" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="action_type" class="form-label">Action Type:</label>
+                        <select name="action_type" id="action_type" class="form-select">
+                            <option value="">All Actions</option>
+                            <option value="LOGIN" {{ 'selected' if current_filters.action_type == 'LOGIN' else '' }}>Login</option>
+                            <option value="LOGIN_FAILED" {{ 'selected' if current_filters.action_type == 'LOGIN_FAILED' else '' }}>Login Failed</option>
+                            <option value="LOGOUT" {{ 'selected' if current_filters.action_type == 'LOGOUT' else '' }}>Logout</option>
+                            <option value="PASSWORD_ADDED" {{ 'selected' if current_filters.action_type == 'PASSWORD_ADDED' else '' }}>Password Added</option>
+                            <option value="PASSWORD_UPDATED" {{ 'selected' if current_filters.action_type == 'PASSWORD_UPDATED' else '' }}>Password Updated</option>
+                            <option value="PASSWORD_DELETED" {{ 'selected' if current_filters.action_type == 'PASSWORD_DELETED' else '' }}>Password Deleted</option>
+                            <option value="PASSWORD_CHANGED" {{ 'selected' if current_filters.action_type == 'PASSWORD_CHANGED' else '' }}>Master Password Changed</option>
+                            <option value="BACKUP_EXPORTED" {{ 'selected' if current_filters.action_type == 'BACKUP_EXPORTED' else '' }}>Backup Exported</option>
+                            <option value="BACKUP_IMPORTED" {{ 'selected' if current_filters.action_type == 'BACKUP_IMPORTED' else '' }}>Backup Imported</option>
+                            <option value="ACCOUNT_CREATED" {{ 'selected' if current_filters.action_type == 'ACCOUNT_CREATED' else '' }}>Account Created</option>
+                            <option value="ACCOUNT_DELETED" {{ 'selected' if current_filters.action_type == 'ACCOUNT_DELETED' else '' }}>Account Deleted</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="days" class="form-label">Time Period:</label>
+                        <select name="days" id="days" class="form-select">
+                            <option value="7" {{ 'selected' if current_filters.days == 7 else '' }}>Last 7 days</option>
+                            <option value="30" {{ 'selected' if current_filters.days == 30 else '' }}>Last 30 days</option>
+                            <option value="90" {{ 'selected' if current_filters.days == 90 else '' }}>Last 90 days</option>
+                            <option value="365" {{ 'selected' if current_filters.days == 365 else '' }}>Last year</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="success_only" class="form-label">Status:</label>
+                        <select name="success_only" id="success_only" class="form-select">
+                            <option value="">All Events</option>
+                            <option value="true" {{ 'selected' if current_filters.success_only == 'true' else '' }}>Successful Only</option>
+                            <option value="false" {{ 'selected' if current_filters.success_only == 'false' else '' }}>Failed Only</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary d-block w-100">🔍 Filter</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Export & Cleanup Section -->
+            <div class="settings-section">
+                <h3>📤 Export & Maintenance</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Export Audit Logs</h5>
+                        <p class="text-muted">Download audit logs for security analysis and compliance.</p>
+                        <a href="{{ url_for('export_audit_logs_route') }}" class="btn btn-success">
+                            📥 Export All Logs
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Log Cleanup</h5>
+                        <p class="text-muted">Remove old audit logs to save storage space.</p>
+                        <form method="POST" action="{{ url_for('cleanup_audit_logs_route') }}" class="d-inline">
+                            <div class="input-group">
+                                <select name="retention_days" class="form-select">
+                                    <option value="30">Keep 30 days</option>
+                                    <option value="90" selected>Keep 90 days</option>
+                                    <option value="180">Keep 180 days</option>
+                                    <option value="365">Keep 1 year</option>
+                                </select>
+                                <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to delete old audit logs? This action cannot be undone.')">
+                                    🗑️ Cleanup
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Logs Table -->
+            <div class="settings-section" style="padding: 1rem; margin: 0;">
+                <h3>📋 Recent Audit Events</h3>
+                <div class="audit-table-container" style="margin: 0; padding: 0;">
+                    <table class="table table-striped table-sm audit-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Action</th>
+                                <th>Description</th>
+                                <th>Target</th>
+                                <th>Status</th>
+                                <th>IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if logs %}
+                                {% for log in logs %}
+                                <tr>
+                                    <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ log.created_at }}">
+                                        <small>{{ log.created_at }}</small>
+                                    </td>
+                                    <td style="overflow: hidden;">
+                                        <span class="badge bg-{{ 'success' if log.action_type in ['LOGIN', 'LOGOUT', 'PASSWORD_ADDED', 'PASSWORD_UPDATED', 'PASSWORD_DELETED', 'PASSWORD_CHANGED', 'BACKUP_EXPORTED', 'BACKUP_IMPORTED', 'ACCOUNT_CREATED'] else 'danger' if 'FAILED' in log.action_type else 'warning' }}">
+                                            {{ log.action_type.replace('_', ' ') }}
+                                        </span>
+                                    </td>
+                                    <td style="overflow: hidden; text-overflow: ellipsis; word-wrap: break-word;" title="{{ log.action_description }}">
+                                        {{ log.action_description }}
+                                    </td>
+                                    <td style="overflow: hidden; text-overflow: ellipsis;">
+                                        {% if log.target_resource %}
+                                            <code title="{{ log.target_resource }}" style="font-size: 0.8em;">{{ log.target_resource }}</code>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="overflow: hidden;">
+                                        {% if log.success %}
+                                            <span class="badge bg-success">✅ Success</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">❌ Failed</span>
+                                            {% if log.error_message %}
+                                                <br><small class="text-danger" style="word-break: break-word; font-size: 0.7em;">{{ log.error_message }}</small>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ log.ip_address or 'Unknown' }}">
+                                        <small>{{ log.ip_address or 'Unknown' }}</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        <div class="py-4">
+                                            <h5>📭 No audit logs found</h5>
+                                            <p>No events match your current filter criteria.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if logs %}
+                <div class="mt-3">
+                    <small class="text-muted">
+                        Showing {{ logs|length }} most recent events. 
+                        Use filters above to narrow down results.
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Security Tips -->
+            <div class="settings-section">
+                <h3>💡 Security Monitoring Tips</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="alert alert-info" style="background-color: rgba(0, 120, 215, 0.1); border-color: #0078D7; color: var(--text-primary);">
+                            <h6>🔍 What to Monitor:</h6>
+                            <ul class="mb-0">
+                                <li>Failed login attempts</li>
+                                <li>Unusual access patterns</li>
+                                <li>Password changes</li>
+                                <li>Backup exports</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-warning" style="background-color: rgba(255, 193, 7, 0.1); border-color: #ffc107; color: var(--text-primary);">
+                            <h6>⚠️ Red Flags:</h6>
+                            <ul class="mb-0">
+                                <li>Multiple failed logins</li>
+                                <li>Access from unknown IPs</li>
+                                <li>Unexpected password changes</li>
+                                <li>Bulk data exports</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-white text-center py-3">
+        <div class="container">
+            <span>&copy; 2025 AegisVault | Designed by Joseph Sparks | All rights reserved.</span>
+        </div>
+    </footer>
+
+<script>
+// Auto-refresh functionality for real-time monitoring
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh every 30 seconds if on the audit logs page
+    if (window.location.pathname.includes('audit_logs')) {
+        setInterval(function() {
+            // Only refresh if no filters are applied (to avoid disrupting user's view)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.toString() === '') {
+                window.location.reload();
+            }
+        }, 30000);
+    }
+});
+
+// Real-time stats update
+function updateStats() {
+    fetch('/api/audit_stats')
+        .then(response => response.json())
+        .then(data => {
+            // Update stats cards if they exist
+            const totalEvents = document.querySelector('.card-body h3.text-primary');
+            if (totalEvents) {
+                totalEvents.textContent = data.total_events || 0;
+            }
+        })
+        .catch(error => console.error('Error updating stats:', error));
+}
+
+// Update stats every 10 seconds
+setInterval(updateStats, 10000);
+</script>
+</body>
+</html>

@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, session, url_for, f
 import sqlite3
 from encryption import encrypt_data, decrypt_data  # ✅ Import encryption functions
 from session import session_expire_event, SessionManager  # ✅ Import session expiration event
-from database import init_db, store_master_account, load_master_account, store_password, get_total_stored_passwords, update_password, delete_password, export_database, get_user_preferences, update_user_preferences, initialize_user_preferences, get_connection
+from database import init_db, store_master_account, load_master_account, store_password, get_total_stored_passwords, update_password, delete_password, export_database, get_user_preferences, update_user_preferences, initialize_user_preferences, get_connection, log_audit_event, get_audit_logs, get_audit_log_stats, cleanup_old_audit_logs, export_audit_logs
 from password_strength import PasswordStrengthAnalyzer
 from password_generator import PasswordGenerator
 
@@ -60,11 +60,34 @@ def login():
                 initialize_user_preferences(username)
                 
                 session_manager.start_session(username)  # 🔥 Starts tracking session expiration
+                
+                # Log successful login
+                log_audit_event(
+                    username=username,
+                    action_type="LOGIN",
+                    action_description="User successfully logged in",
+                    ip_address=request.remote_addr,
+                    user_agent=request.headers.get('User-Agent'),
+                    session_id=session.get('session_id', 'unknown')
+                )
+                
                 return redirect("/dashboard")  # ✅ Redirect on success
 
             print("DEBUG: Password incorrect")
 
         print("DEBUG: User not found")
+        
+        # Log failed login attempt
+        log_audit_event(
+            username=username if 'username' in locals() else 'unknown',
+            action_type="LOGIN_FAILED",
+            action_description="Failed login attempt",
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            success=False,
+            error_message="Invalid credentials"
+        )
+        
         return render_template("login.html", error="Invalid credentials!")
 
     return render_template("login.html")
@@ -86,6 +109,18 @@ def dashboard():
 
 @app.route("/logout")
 def logout():
+    username = session.get("user_id", "unknown")
+    
+    # Log logout event
+    log_audit_event(
+        username=username,
+        action_type="LOGOUT",
+        action_description="User logged out",
+        ip_address=request.remote_addr,
+        user_agent=request.headers.get('User-Agent'),
+        session_id=session.get('session_id', 'unknown')
+    )
+    
     session.clear()  # 🔒 Clears user session
     return redirect("/")  # ✅ Redirects back to login page
 
@@ -187,6 +222,15 @@ def create_account():
 
         print(f"✅ DEBUG: Stored {username} in users table")  # 🔥 Confirms successful insertion
 
+        # Log account creation
+        log_audit_event(
+            username=username,
+            action_type="ACCOUNT_CREATED",
+            action_description="New user account created",
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent')
+        )
+
         flash("Account created successfully! You can now log in.", "success")
         return redirect(url_for("login"))  # ✅ Redirect to login page
 
@@ -220,6 +264,18 @@ def update_password_route():
     new_password = data["new_password"]  # ✅ Keep plaintext; database.py encrypts automatically
 
     update_password(website, new_password)  # 🔒 Database will handle encryption
+    
+    # Log password update
+    log_audit_event(
+        username=session.get("user_id", "unknown"),
+        action_type="PASSWORD_UPDATED",
+        action_description=f"Password updated for website: {website}",
+        target_resource=website,
+        ip_address=request.remote_addr,
+        user_agent=request.headers.get('User-Agent'),
+        session_id=session.get('session_id', 'unknown')
+    )
+    
     return {"status": "success"}, 200
 
 @app.route("/delete_password", methods=["POST"])
@@ -229,6 +285,18 @@ def delete_password_route():
     website = data["website"]
 
     delete_password(website)
+    
+    # Log password deletion
+    log_audit_event(
+        username=session.get("user_id", "unknown"),
+        action_type="PASSWORD_DELETED",
+        action_description=f"Password deleted for website: {website}",
+        target_resource=website,
+        ip_address=request.remote_addr,
+        user_agent=request.headers.get('User-Agent'),
+        session_id=session.get('session_id', 'unknown')
+    )
+    
     return {"status": "success"}, 200
 
 @app.route("/settings")
@@ -250,6 +318,17 @@ def add_password():
         password = request.form["password"]
 
         store_password(website, username, password)
+        
+        # Log password addition
+        log_audit_event(
+            username=session.get("user_id", "unknown"),
+            action_type="PASSWORD_ADDED",
+            action_description=f"Password added for website: {website}",
+            target_resource=website,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            session_id=session.get('session_id', 'unknown')
+        )
 
         flash("Password saved successfully!", "success")
         return redirect(url_for("vault"))
@@ -281,9 +360,33 @@ def change_password():
     try:
         # Update the master account password in the database
         store_master_account(username, encrypted_new_password)
+        
+        # Log password change
+        log_audit_event(
+            username=username,
+            action_type="PASSWORD_CHANGED",
+            action_description="Master account password changed",
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            session_id=session.get('session_id', 'unknown')
+        )
+        
         flash("Password updated securely!", "success")
     except Exception as e:
         print(f"ERROR: Failed to update password: {e}")
+        
+        # Log failed password change
+        log_audit_event(
+            username=username,
+            action_type="PASSWORD_CHANGE_FAILED",
+            action_description="Failed to change master account password",
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            success=False,
+            error_message=str(e),
+            session_id=session.get('session_id', 'unknown')
+        )
+        
         flash("Failed to update password.", "danger")
 
     return redirect(url_for('settings'))
@@ -304,17 +407,51 @@ def delete_account():
         conn.commit()
         conn.close()
 
+        # Log account deletion
+        log_audit_event(
+            username=user_id,
+            action_type="ACCOUNT_DELETED",
+            action_description="User account deleted",
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            session_id=session.get('session_id', 'unknown')
+        )
+
         session.clear()  # 🚀 Log user out after deletion
         flash("Your account has been successfully deleted.", "success")
         return redirect(url_for('create_account'))  # 🔄 Redirect to account creation
 
     except Exception as e:
+        # Log failed account deletion
+        log_audit_event(
+            username=user_id,
+            action_type="ACCOUNT_DELETE_FAILED",
+            action_description="Failed to delete user account",
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            success=False,
+            error_message=str(e),
+            session_id=session.get('session_id', 'unknown')
+        )
+        
         flash(f"Error deleting account: {str(e)}", "danger")
         return redirect(url_for('settings'))
 
 @app.route("/export_backup")
 def export_backup():
     """Serves the encrypted database backup as a downloadable file."""
+    username = session.get("user_id", "unknown")
+    
+    # Log backup export
+    log_audit_event(
+        username=username,
+        action_type="BACKUP_EXPORTED",
+        action_description="Database backup exported",
+        ip_address=request.remote_addr,
+        user_agent=request.headers.get('User-Agent'),
+        session_id=session.get('session_id', 'unknown')
+    )
+    
     backup_path = export_database()  # 🔄 Generate backup before serving
     return send_file(backup_path, as_attachment=True)
 
@@ -335,9 +472,22 @@ def import_backup():
         print(f"DEBUG: Backup Data Loaded → {backup_data}")  # 🔎 Verify JSON structure
 
         # 🔥 Pass each entry directly to `store_password()`
+        imported_count = 0
         for entry in backup_data:
             store_password(entry["website"], entry["username"], entry["password"])
             print(f"✅ Stored: {entry['website']} | {entry['username']} | {entry['password']}")  # Debugging output
+            imported_count += 1
+
+        # Log backup import
+        log_audit_event(
+            username=session.get("user_id", "unknown"),
+            action_type="BACKUP_IMPORTED",
+            action_description=f"Database backup imported - {imported_count} entries",
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            additional_data=f"imported_count:{imported_count}",
+            session_id=session.get('session_id', 'unknown')
+        )
 
         flash("Backup imported successfully!", "success")
         session.modified = True  # 🔄 Ensure flash messages persist
@@ -494,6 +644,138 @@ def get_generator_options():
     except Exception as e:
         print(f"Error getting generator options: {e}")
         return {"error": "Failed to get generator options"}, 500
+
+# Audit Logging Routes
+@app.route("/audit_logs")
+def audit_logs():
+    """Display audit logs page."""
+    if "user_id" not in session:
+        return redirect("/")
+    
+    username = session["user_id"]
+    
+    # Get filter parameters
+    action_type = request.args.get('action_type', '')
+    days = int(request.args.get('days', 30))
+    success_only = request.args.get('success_only')
+    
+    # Convert success_only to boolean
+    success_filter = None
+    if success_only == 'true':
+        success_filter = True
+    elif success_only == 'false':
+        success_filter = False
+    
+    # Get audit logs
+    logs = get_audit_logs(
+        username=username,
+        action_type=action_type if action_type else None,
+        limit=100,
+        success_only=success_filter
+    )
+    
+    # Get audit stats
+    stats = get_audit_log_stats(username=username, days=days)
+    
+    return render_template("logging.html", logs=logs, stats=stats, 
+                         current_filters={'action_type': action_type, 'days': days, 'success_only': success_only})
+
+@app.route("/api/audit_logs")
+def api_audit_logs():
+    """API endpoint for audit logs with filtering."""
+    if "user_id" not in session:
+        return {"error": "Not authenticated"}, 401
+    
+    username = session["user_id"]
+    
+    # Get filter parameters
+    action_type = request.args.get('action_type')
+    limit = int(request.args.get('limit', 50))
+    offset = int(request.args.get('offset', 0))
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    success_only = request.args.get('success_only')
+    
+    # Convert success_only to boolean
+    success_filter = None
+    if success_only == 'true':
+        success_filter = True
+    elif success_only == 'false':
+        success_filter = False
+    
+    logs = get_audit_logs(
+        username=username,
+        action_type=action_type,
+        limit=limit,
+        offset=offset,
+        start_date=start_date,
+        end_date=end_date,
+        success_only=success_filter
+    )
+    
+    return {"logs": logs}
+
+@app.route("/api/audit_stats")
+def api_audit_stats():
+    """API endpoint for audit log statistics."""
+    if "user_id" not in session:
+        return {"error": "Not authenticated"}, 401
+    
+    username = session["user_id"]
+    days = int(request.args.get('days', 30))
+    
+    stats = get_audit_log_stats(username=username, days=days)
+    return stats
+
+@app.route("/export_audit_logs")
+def export_audit_logs_route():
+    """Export audit logs as JSON file."""
+    if "user_id" not in session:
+        return redirect("/")
+    
+    username = session["user_id"]
+    
+    # Get filter parameters
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    # Log audit log export
+    log_audit_event(
+        username=username,
+        action_type="AUDIT_LOGS_EXPORTED",
+        action_description="Audit logs exported",
+        ip_address=request.remote_addr,
+        user_agent=request.headers.get('User-Agent'),
+        session_id=session.get('session_id', 'unknown')
+    )
+    
+    backup_path = export_audit_logs(username=username, start_date=start_date, end_date=end_date)
+    return send_file(backup_path, as_attachment=True)
+
+@app.route("/cleanup_audit_logs", methods=["POST"])
+def cleanup_audit_logs_route():
+    """Clean up old audit logs."""
+    if "user_id" not in session:
+        return {"error": "Not authenticated"}, 401
+    
+    username = session["user_id"]
+    retention_days = int(request.form.get('retention_days', 90))
+    
+    deleted_count = cleanup_old_audit_logs(retention_days)
+    
+    # Log cleanup action
+    log_audit_event(
+        username=username,
+        action_type="AUDIT_LOGS_CLEANUP",
+        action_description=f"Cleaned up {deleted_count} old audit log entries",
+        ip_address=request.remote_addr,
+        user_agent=request.headers.get('User-Agent'),
+        additional_data=f"retention_days:{retention_days},deleted_count:{deleted_count}",
+        session_id=session.get('session_id', 'unknown')
+    )
+    
+    flash(f"Cleaned up {deleted_count} old audit log entries.", "success")
+    return redirect(url_for('audit_logs'))
 
 if __name__ == "__main__":
     app.run(debug=True)

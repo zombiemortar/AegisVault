@@ -2,6 +2,7 @@ import sqlite3
 import os
 from encryption import encrypt_data, decrypt_data
 import json
+from datetime import datetime
 
 # Resolve an absolute, canonical path to the database so all modules use the same file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +39,22 @@ def init_db():
             lock_on_window_blur BOOLEAN DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            action_type TEXT NOT NULL,
+            action_description TEXT NOT NULL,
+            target_resource TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            success BOOLEAN DEFAULT 1,
+            error_message TEXT,
+            session_id TEXT,
+            additional_data TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     
@@ -86,6 +103,20 @@ def run_migrations(cursor):
         # Partial index for active (not deleted) credentials if supported
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_credentials_website_active ON credentials(website) WHERE deleted_at IS NULL"
+        )
+        
+        # Audit logs indexes for better performance
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_audit_logs_username ON audit_logs(username)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_audit_logs_action_type ON audit_logs(action_type)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_audit_logs_success ON audit_logs(success)"
         )
         
     except sqlite3.Error as e:
@@ -364,4 +395,161 @@ def export_database():
         json.dump(credentials, backup_file, indent=4)  # ✅ Save decrypted version
 
     return backup_path  # ✅ Path for Flask to serve
+
+# Audit Logging Functions
+def log_audit_event(username, action_type, action_description, target_resource=None, 
+                   ip_address=None, user_agent=None, success=True, error_message=None, 
+                   session_id=None, additional_data=None):
+    """Log an audit event to the database."""
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            INSERT INTO audit_logs (username, action_type, action_description, target_resource,
+                                  ip_address, user_agent, success, error_message, session_id, additional_data)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (username, action_type, action_description, target_resource, ip_address, 
+              user_agent, success, error_message, session_id, additional_data))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error logging audit event: {e}")
+    finally:
+        conn.close()
+
+def get_audit_logs(username=None, action_type=None, limit=100, offset=0, 
+                  start_date=None, end_date=None, success_only=None):
+    """Retrieve audit logs with optional filtering."""
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    
+    # Build query with filters
+    query = "SELECT * FROM audit_logs WHERE 1=1"
+    params = []
+    
+    if username:
+        query += " AND username = ?"
+        params.append(username)
+    
+    if action_type:
+        query += " AND action_type = ?"
+        params.append(action_type)
+    
+    if start_date:
+        query += " AND created_at >= ?"
+        params.append(start_date)
+    
+    if end_date:
+        query += " AND created_at <= ?"
+        params.append(end_date)
+    
+    if success_only is not None:
+        query += " AND success = ?"
+        params.append(success_only)
+    
+    query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    params.extend([limit, offset])
+    
+    try:
+        cursor.execute(query, params)
+        logs = cursor.fetchall()
+        
+        # Convert to list of dictionaries
+        columns = [description[0] for description in cursor.description]
+        result = []
+        for row in logs:
+            log_dict = dict(zip(columns, row))
+            result.append(log_dict)
+        
+        return result
+    except sqlite3.Error as e:
+        print(f"Error retrieving audit logs: {e}")
+        return []
+    finally:
+        conn.close()
+
+def get_audit_log_stats(username=None, days=30):
+    """Get audit log statistics for a user."""
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    
+    try:
+        # Get total events
+        query = "SELECT COUNT(*) FROM audit_logs WHERE created_at >= datetime('now', '-{} days')".format(days)
+        params = []
+        
+        if username:
+            query += " AND username = ?"
+            params.append(username)
+        
+        cursor.execute(query, params)
+        total_events = cursor.fetchone()[0]
+        
+        # Get events by type
+        query = "SELECT action_type, COUNT(*) FROM audit_logs WHERE created_at >= datetime('now', '-{} days')".format(days)
+        if username:
+            query += " AND username = ?"
+        query += " GROUP BY action_type"
+        
+        cursor.execute(query, params)
+        events_by_type = dict(cursor.fetchall())
+        
+        # Get success/failure ratio
+        query = "SELECT success, COUNT(*) FROM audit_logs WHERE created_at >= datetime('now', '-{} days')".format(days)
+        if username:
+            query += " AND username = ?"
+        query += " GROUP BY success"
+        
+        cursor.execute(query, params)
+        success_stats = dict(cursor.fetchall())
+        
+        return {
+            'total_events': total_events,
+            'events_by_type': events_by_type,
+            'success_stats': success_stats,
+            'period_days': days
+        }
+    except sqlite3.Error as e:
+        print(f"Error getting audit log stats: {e}")
+        return {}
+    finally:
+        conn.close()
+
+def cleanup_old_audit_logs(retention_days=90):
+    """Clean up audit logs older than specified days."""
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            DELETE FROM audit_logs 
+            WHERE created_at < datetime('now', '-{} days')
+        """.format(retention_days))
+        
+        deleted_count = cursor.rowcount
+        conn.commit()
+        
+        print(f"Cleaned up {deleted_count} old audit log entries")
+        return deleted_count
+    except sqlite3.Error as e:
+        print(f"Error cleaning up audit logs: {e}")
+        return 0
+    finally:
+        conn.close()
+
+def export_audit_logs(username=None, start_date=None, end_date=None):
+    """Export audit logs to JSON format."""
+    logs = get_audit_logs(username=username, start_date=start_date, end_date=end_date, limit=10000)
+    
+    backup_dir = "../backup"
+    os.makedirs(backup_dir, exist_ok=True)
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"AegisVault_AuditLogs_{timestamp}.json"
+    backup_path = os.path.join(backup_dir, filename)
+    
+    with open(backup_path, "w") as backup_file:
+        json.dump(logs, backup_file, indent=4, default=str)
+    
+    return backup_path
 

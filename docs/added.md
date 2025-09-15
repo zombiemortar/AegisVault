@@ -207,6 +207,37 @@ This document lists all implemented features in the AegisVault password manager,
 - `src/static/style.css`
 - Template files (semantic/ARIA)
 
+## Audit Logging & Security Monitoring
+
+**Overview**: Comprehensive activity logging and security monitoring system with filtering, export capabilities, and theme-aware UI.
+
+**Features Implemented**:
+- Comprehensive audit logging for all user actions (login, password operations, account changes)
+- Real-time activity monitoring with IP address tracking
+- Advanced filtering by action type, time period, and success status
+- Export functionality for security analysis and compliance
+- Log cleanup and retention policies
+- Statistics overview with visual metrics
+- Security monitoring tips and best practices
+- Theme-aware UI matching application design standards
+
+**Technical Implementation**:
+- `audit_logs` database table with comprehensive event tracking
+- Server-side logging with client IP capture
+- Real-time statistics calculation and display
+- Export functionality with JSON formatting
+- Cleanup operations with configurable retention periods
+- Responsive table design with proper theme integration
+
+**Files Modified**:
+- `src/database.py` - Audit logging functions and schema
+- `src/app.py` - Audit logging routes and integration
+- `src/templates/logging.html` - Complete audit logs interface
+- `src/static/style.css` - Theme-aware styling for audit components
+
+**Database Schema**:
+- New table: `audit_logs` (timestamp, action_type, description, target_resource, success, error_message, ip_address, user_id)
+
 ## Backup & Export
 
 **Features Implemented**:
@@ -246,6 +277,12 @@ This document lists all implemented features in the AegisVault password manager,
 - `GET /export_backup` - Export database backup
 - `POST /import_backup` - Import backup
 
+### Audit Logging & Security
+- `GET /audit_logs` - View audit logs with filtering
+- `GET /export_audit_logs` - Export audit logs
+- `POST /cleanup_audit_logs` - Cleanup old audit logs
+- `GET /api/audit_stats` - Get audit statistics
+
 ## Technical & Frontend Architecture (overview)
 
 **JavaScript**: `static/theme.js`, `static/auto_lock.js`, inline scripts in templates
@@ -267,9 +304,9 @@ This document lists all implemented features in the AegisVault password manager,
 
 ## Conclusion
 
-AegisVault provides a secure, user-friendly password management experience with a solid technical foundation. Features are production-ready and structured for maintainability and future enhancements.
+AegisVault provides a secure, user-friendly password management experience with a solid technical foundation. The application now includes comprehensive audit logging and security monitoring capabilities, ensuring full visibility into user activities and system security. Features are production-ready and structured for maintainability and future enhancements.
 
 ---
 
-*Documentation last updated: September 9, 2025*
+*Documentation last updated: January 15, 2025*
 *Project: AegisVault Password Manager*
