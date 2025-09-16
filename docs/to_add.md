@@ -38,11 +38,7 @@ This document outlines suggested feature enhancements organized from easiest to 
 **Complexity: Medium** - File processing and validation logic
 
 ### 9. Audit Logging (DONE) ✅
-- Comprehensive activity logs for all user actions
-- Create logging.html and follow the same styling and design queues as settings.html
-- Export logs for security analysis
-- Log retention policies and cleanup
-**Complexity: Medium** - New database tables and logging system
+
 
 ### 10. Automated Backup System
 - Automated scheduled backups (daily, weekly, monthly)
@@ -57,6 +53,7 @@ This document outlines suggested feature enhancements organized from easiest to 
 - Password age tracking and expiration warnings
 - Security score based on password practices
 - Basic unusual activity detection
+- Add as part of logging.html to prevent double work
 **Complexity: Medium-High** - Analytics system with data visualization
 
 ### 12. Two-Factor Authentication (2FA)
