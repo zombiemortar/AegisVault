@@ -4,12 +4,12 @@ from database import (
     store_password, retrieve_password, store_master_account, load_master_account,
     delete_password, update_password, init_db, get_all_stored_urls
 )
-from encryption import generate_key, encrypt_data
+from encryption import encrypt_data  # Remove generate_key import
 from session import SessionManager, session_expire_event
 
 # Initialize database and encryption key on startup
 init_db()
-generate_key()
+# Note: Encryption key is automatically generated when encryption module is imported
 session_active = False  # Tracks whether session is active
 session_expired_event = threading.Event()  # Tracks session expiration
 session = SessionManager()

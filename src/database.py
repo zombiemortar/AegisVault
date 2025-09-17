@@ -1,68 +1,97 @@
 import sqlite3
 import os
+import sys
 from encryption import encrypt_data, decrypt_data
 import json
 from datetime import datetime
 
-# Resolve an absolute, canonical path to the database so all modules use the same file
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE_FILE = os.path.normpath(os.path.join(BASE_DIR, "..", "data", "passwords.db"))
+def get_app_data_dir():
+    """Get the appropriate data directory for the application."""
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller executable
+        if sys.platform == 'win32':
+            # Windows: Use AppData\Roaming\AegisVault
+            app_data = os.path.join(os.environ.get('APPDATA', ''), 'AegisVault')
+        elif sys.platform == 'darwin':
+            # macOS: Use ~/Library/Application Support/AegisVault
+            app_data = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support', 'AegisVault')
+        else:
+            # Linux: Use ~/.local/share/AegisVault
+            app_data = os.path.join(os.path.expanduser('~'), '.local', 'share', 'AegisVault')
+    else:
+        # Running as script - use relative path
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        app_data = os.path.normpath(os.path.join(BASE_DIR, "..", "data"))
+    
+    # Create directory if it doesn't exist
+    os.makedirs(app_data, exist_ok=True)
+    return app_data
+
+# Get the database file path
+DATA_DIR = get_app_data_dir()
+DATABASE_FILE = os.path.join(DATA_DIR, "passwords.db")
 
 def init_db():
     """Initializes the password storage database."""
-    conn = sqlite3.connect(DATABASE_FILE)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS credentials (
-            id INTEGER PRIMARY KEY,
-            website TEXT UNIQUE NOT NULL,
-            username TEXT NOT NULL,
-            password TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            deleted_at TIMESTAMP
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS master_account (
-            username TEXT NOT NULL,
-            password TEXT NOT NULL
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS user_preferences (
-            username TEXT PRIMARY KEY,
-            session_timeout INTEGER DEFAULT 300,
-            lock_on_tab_inactive BOOLEAN DEFAULT 1,
-            lock_on_suspicious_activity BOOLEAN DEFAULT 1,
-            auto_lock_enabled BOOLEAN DEFAULT 1,
-            lock_on_window_blur BOOLEAN DEFAULT 1,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS audit_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            action_type TEXT NOT NULL,
-            action_description TEXT NOT NULL,
-            target_resource TEXT,
-            ip_address TEXT,
-            user_agent TEXT,
-            success BOOLEAN DEFAULT 1,
-            error_message TEXT,
-            session_id TEXT,
-            additional_data TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    
-    # Run migrations to add new columns to existing tables
-    run_migrations(cursor)
-    
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS credentials (
+                id INTEGER PRIMARY KEY,
+                website TEXT UNIQUE NOT NULL,
+                username TEXT NOT NULL,
+                password TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                deleted_at TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS master_account (
+                username TEXT NOT NULL,
+                password TEXT NOT NULL
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_preferences (
+                username TEXT PRIMARY KEY,
+                session_timeout INTEGER DEFAULT 300,
+                lock_on_tab_inactive BOOLEAN DEFAULT 1,
+                lock_on_suspicious_activity BOOLEAN DEFAULT 1,
+                auto_lock_enabled BOOLEAN DEFAULT 1,
+                lock_on_window_blur BOOLEAN DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                action_type TEXT NOT NULL,
+                action_description TEXT NOT NULL,
+                target_resource TEXT,
+                ip_address TEXT,
+                user_agent TEXT,
+                success BOOLEAN DEFAULT 1,
+                error_message TEXT,
+                session_id TEXT,
+                additional_data TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Run migrations to add new columns to existing tables
+        run_migrations(cursor)
+        
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Database error during init_db: {e}")
+        raise
+    finally:
+        if 'conn' in locals() and conn:
+            conn.close()
 
 def run_migrations(cursor):
     """Run database migrations to update schema."""

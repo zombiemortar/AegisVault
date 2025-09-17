@@ -1,11 +1,18 @@
 import sqlite3
 import os
+import sys
+from database import get_app_data_dir, DATABASE_FILE
 
 def check_database():
     print("=== Database Check ===")
     
+    # Get the correct database path
+    data_dir = get_app_data_dir()
+    db_path = DATABASE_FILE
+    print(f"📁 Data directory: {data_dir}")
+    print(f"🗄️ Database path: {db_path}")
+    
     # Check if database exists
-    db_path = "../data/passwords.db"
     if os.path.exists(db_path):
         print(f"✅ Database exists at: {db_path}")
     else:
@@ -51,20 +58,24 @@ def check_database():
 def check_encryption_key():
     print("\n=== Encryption Key Check ===")
     
-    # Check for encryption key in different locations
-    possible_paths = [
-        "encryption_key.key",
-        "../src/encryption_key.key",
-        "encryption_key.key"
-    ]
+    # Import the encryption key path function
+    from encryption import get_encryption_key_path
     
-    for path in possible_paths:
-        if os.path.exists(path):
-            print(f"✅ Encryption key found at: {path}")
-            return path
+    key_path = get_encryption_key_path()
+    print(f"🔑 Encryption key path: {key_path}")
     
-    print("❌ Encryption key not found in any expected location")
-    return None
+    if os.path.exists(key_path):
+        print(f"✅ Encryption key exists at: {key_path}")
+        try:
+            with open(key_path, "rb") as key_file:
+                key_data = key_file.read()
+                print(f"📏 Key size: {len(key_data)} bytes")
+        except Exception as e:
+            print(f"❌ Error reading key: {e}")
+        return key_path
+    else:
+        print(f"❌ Encryption key not found at: {key_path}")
+        return None
 
 def check_encryption():
     print("\n=== Encryption Test ===")

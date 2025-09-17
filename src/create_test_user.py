@@ -1,11 +1,13 @@
 import sqlite3
 from encryption import encrypt_data, decrypt_data
+from database import DATABASE_FILE
 
 def create_test_user():
     print("=== Create Test User ===")
+    print(f"🗄️ Using database: {DATABASE_FILE}")
     
     # Connect to database
-    conn = sqlite3.connect("../data/passwords.db")
+    conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     
     # Check existing users

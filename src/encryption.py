@@ -1,29 +1,37 @@
 import os
+import sys
 from cryptography.fernet import Fernet
 
-KEY_FILE = "encryption_key.key"
-
-
-def generate_key():
-    """Generates and returns a persistent encryption key only if none exists."""
-    key = None
-    if not os.path.exists("encryption_key.key"):
-        key = Fernet.generate_key()
-        with open("encryption_key.key", "wb") as key_file:
-            key_file.write(key)
+def get_encryption_key_path():
+    """Get the appropriate path for the encryption key."""
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller executable
+        if sys.platform == 'win32':
+            app_data = os.path.join(os.environ.get('APPDATA', ''), 'AegisVault')
+        elif sys.platform == 'darwin':
+            app_data = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support', 'AegisVault')
+        else:
+            app_data = os.path.join(os.path.expanduser('~'), '.local', 'share', 'AegisVault')
     else:
-        with open("encryption_key.key", "rb") as key_file:
-            key = key_file.read()
-
-    print(f"Generated Key: {key}")  # ✅ Debugging output
-    return key
-
-def load_key():
-    """Loads encryption key from file or generates a new one."""
-    return generate_key() if not os.path.exists(KEY_FILE) else open(KEY_FILE, "rb").read()
+        # Running as script
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        app_data = os.path.normpath(os.path.join(BASE_DIR, "..", "data"))
+    
+    os.makedirs(app_data, exist_ok=True)
+    return os.path.join(app_data, "encryption_key.key")
 
 # Initialize encryption with the stored key
-key = load_key()
+key = None
+if not os.path.exists(get_encryption_key_path()):
+    key = Fernet.generate_key()
+    with open(get_encryption_key_path(), "wb") as key_file:
+        key_file.write(key)
+else:
+    with open(get_encryption_key_path(), "rb") as key_file:
+        key = key_file.read()
+
+print(f"Generated Key: {key}")  # ✅ Debugging output
+
 cipher_suite = Fernet(key)
 
 
