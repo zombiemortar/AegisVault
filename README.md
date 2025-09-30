@@ -107,6 +107,18 @@ Aegis Vault/
 └── backup/               # Backup files
 ```
 
+## **Architecture**
+
+See the high-level system overview, including frontend, backend, utilities, and data flows:
+
+- Architecture Diagram: [docs/architecture.html](docs/architecture.html)
+
+## **Database Schema**
+
+Entity–relationship view of the SQLite schema and key relationships:
+
+- Database Schema Diagram: [docs/database_schema.html](docs/database_schema.html)
+
 ## Future Revisions:
 
 - 🔄 **Theme Customization**
