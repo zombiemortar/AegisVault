@@ -1,3 +1,14 @@
+# Ignore backup files and directories
+backup/
+*.bak
+
+# Ignore all Word documents
+*.docx
+
+# Ignore all Markdown files except README.md
+*.md
+!README.md
+
 # Python
 __pycache__/
 *.py[cod]
