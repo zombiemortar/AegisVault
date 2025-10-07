@@ -95,7 +95,7 @@ def login():
 
 @app.route("/dashboard")
 def dashboard():
-    username= session.get("user_id", "Guest")  # 🔒 Retrieves user ID from session
+    username = session.get("user_id", "Guest")  # 🔒 Retrieves user ID from session
     print(f"DEBUG: Checking session expiration flag (Flask) → {session_expire_event.is_set()}")  # 🔎 Logs flag state
     total_passwords = get_total_stored_passwords()
 
